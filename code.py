@@ -5,8 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
 
-# test github
-print('git test')
+
 
 # functions  
 def raise_frame(frame_name):
@@ -131,27 +130,20 @@ Dphotomangermenuscreen = PhotoImage(file='Hannon-Transport Small.png')
 Dphotolabelmanager = Label(Driverlabelframe, image=Dphotomangermenuscreen, bg='white')
 Dphotolabelmanager.grid(row=0, column=0, sticky=N)
 
-Button1 = Button(Driverlabelframe, command=ManagerDriver, text='Driver', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=1)
-Button2 = Button(Driverlabelframe, command=Button1, text='Button2', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=2)
-Button3 = Button(Driverlabelframe, command=Button1, text='Button3', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=3)
-Button4 = Button(Driverlabelframe, command=Button1, text='Button4', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=4)
-Button5 = Button(Driverlabelframe, command=Button1, text='Button5', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=5)
-Button6 = Button(Driverlabelframe, command=Button1, text='Button5', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=6)
-Button7 = Button(Driverlabelframe, command=MangerMenu, text='Menu', bg='white', pady=5, padx=5, width=10,
-                 height=4).grid(row=0, column=7)
+Button1 = ttk.Button(Driverlabelframe, command=ManagerDriver, text='Driver').grid(row=0, column=1)
+Button2 = ttk.Button(Driverlabelframe, command=Button1, text='Button2').grid(row=0, column=2)
+Button3 = ttk.Button(Driverlabelframe, command=Button1, text='Button3').grid(row=0, column=3)
+Button4 = ttk.Button(Driverlabelframe, command=Button1, text='Button4').grid(row=0, column=4)
+Button5 = ttk.Button(Driverlabelframe, command=Button1, text='Button5').grid(row=0, column=5)
+Button6 = ttk.Button(Driverlabelframe, command=Button1, text='Button5').grid(row=0, column=6)
+Button7 = ttk.Button(Driverlabelframe, command=MangerMenu, text='Menu').grid(row=0, column=7)
 
 managerTVFrameDriver = Frame(MangerDriverFrame)
 managerTVFrameDriver.grid(row=1, column=0)
 managerTVFrameDriver.configure(bg='white')
 
-SerachlabelD = Label(managerTVFrameDriver, text='Search:', font=10).grid(row=0, column=0, padx=10)
-search_entryD = Entry(managerTVFrameDriver, textvariable=MangerTVSerVal, width=90).grid(row=0, column=1)
+SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:').grid(row=0, column=0, padx=10)
+search_entryD = ttk.Entry(managerTVFrameDriver, textvariable=MangerTVSerVal, width=90).grid(row=0, column=1)
 
 managerTVDriver = ttk.Treeview(managerTVFrameDriver, height=10,
                                columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3'))
@@ -172,22 +164,22 @@ managerInputsFrameDriver = LabelFrame(MangerDriverFrame, text='Inputs', bg='whit
 managerInputsFrameDriver.grid(row=2, column=0)
 managerInputsFrameDriver.configure(bg='white')
 
-FirstNameLabelD = Label(managerInputsFrameDriver, text='First Name:').grid(row=0, column=0, padx=10)
-FirstNameentryD = Entry(managerInputsFrameDriver, textvariable=FirstNameD).grid(row=0, column=1)
+FirstNameLabelD = ttk.Label(managerInputsFrameDriver, text='First Name:').grid(row=0, column=0, padx=10)
+FirstNameentryD = ttk.Entry(managerInputsFrameDriver, textvariable=FirstNameD).grid(row=0, column=1)
 
-LastNameLabelD = Label(managerInputsFrameDriver, text='Last Name:').grid(row=0, column=2, padx=10)
-LastNameentryD = Entry(managerInputsFrameDriver, textvariable=LastNameD).grid(row=0, column=3)
+LastNameLabelD = ttk.Label(managerInputsFrameDriver, text='Last Name:').grid(row=0, column=2, padx=10)
+LastNameentryD = ttk.Entry(managerInputsFrameDriver, textvariable=LastNameD).grid(row=0, column=3)
 
-EmailLabelD = Label(managerInputsFrameDriver, text='Email:').grid(row=0, column=4, padx=10)
-EmailentryD = Entry(managerInputsFrameDriver, textvariable=EmailD).grid(row=0, column=5)
+EmailLabelD = ttk.Label(managerInputsFrameDriver, text='Email:').grid(row=0, column=4, padx=10)
+EmailentryD = ttk.Entry(managerInputsFrameDriver, textvariable=EmailD).grid(row=0, column=5)
 
-AddDriverButton = Button(managerInputsFrameDriver, text='Add Driver', command=AddDriver).grid(row=1, column=0, padx=10,
+AddDriverButton = ttk.Button(managerInputsFrameDriver, text='Add Driver', command=AddDriver).grid(row=1, column=0, padx=10,
                                                                                               pady=10)
 
-DelDriverButton = Button(managerInputsFrameDriver, text='Delete Driver', command=DelDriver).grid(row=1, column=2,
+DelDriverButton = ttk.Button(managerInputsFrameDriver, text='Delete Driver', command=DelDriver).grid(row=1, column=2,
                                                                                                  padx=10, pady=10)
 
-EmailDriverButton = Button(managerInputsFrameDriver, text='Send Email', command=EmailDriver).grid(row=1, column=4,
+EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', command=EmailDriver).grid(row=1, column=4,
                                                                                                   padx=10, pady=10)
 
 raise_frame(loginframe)
