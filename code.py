@@ -4,6 +4,7 @@ from tkinter import messagebox
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
+import sqlite3
 
 
 
@@ -13,8 +14,34 @@ def raise_frame(frame_name):
 
 
 def login():
-    raise_frame(managermenuframe)
-    root.geometry('590x600')
+    MangerMenu()
+
+
+def Login():
+    Finialusername = username.get()
+
+    Finialpassword = Password.get()
+    print(Finialpassword, Finialusername)
+    conn = sqlite3.connect('hannon.db')
+    c = conn.cursor()
+    c.execute("SELECT rowid, * from passwords WHERE username = (?)", (Finialusername,))
+    reader = c.fetchall()
+    print(reader)
+    for row in reader:
+        if row[2] == Finialpassword and row[3] == 'driver':
+            MangerMenu()
+            print('driver')
+        elif row[2] == Finialpassword and row[3] == 'client':
+            MangerMenu()
+            print('driver')
+        elif row[2] == Finialpassword and row[3] == 'loader':
+            MangerMenu()
+            print('driver')
+        elif row[2] == Finialpassword and row[3] == 'customs':
+            MangerMenu()
+            print('customs')
+        else:
+            messagebox.showinfo("Info", "Incorect password", icon="info")
 
 
 def forgot_password():
