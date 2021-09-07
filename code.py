@@ -73,8 +73,19 @@ def MangerMenu():
 
 
 def ManagerDriver():
+    ShowDriverTV()
     raise_frame(MangerDriverFrame)
     root.geometry('640x600')
+
+
+def ShowDriverTV():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    managerTVDriver.delete(*managerTVDriver.get_children())
+    c.execute("SELECT * FROM drivers")
+    for row in c:
+        managerTVDriver.insert('', 'end', text=row[0], values=row[1:5])
+    print(c)
 
 
 def AddDriver():
@@ -90,6 +101,7 @@ def AddDriver():
 
     conn.commit()
     print('done')
+    ShowDriverTV()
 
 
 def DelDriver():
