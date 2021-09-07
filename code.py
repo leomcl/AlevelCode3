@@ -78,7 +78,18 @@ def ManagerDriver():
 
 
 def AddDriver():
-    pass
+    Ffirstname = FirstNameD.get()
+    Flastname = LastNameD.get()
+    Femail = EmailD.get()
+    conn = sqlite3.connect('data.db')
+    mycursor = conn.cursor()
+
+    sql = "INSERT INTO drivers (email, firstname, lastname, deliveries, avaliablity) VALUES (?, ?, ?, ?, ?)"
+    val = (Femail, Ffirstname, Flastname, 0, "Yes")
+    mycursor.execute(sql, val)
+
+    conn.commit()
+    print('done')
 
 
 def DelDriver():
@@ -96,10 +107,10 @@ root.configure(background='white')
 # variables
 username = StringVar()
 Password = StringVar()
-MangerTVSerVal = ''
-FirstNameD = ''
-LastNameD = ''
-EmailD = ''
+MangerTVSerVal = StringVar()
+FirstNameD = StringVar()
+LastNameD = StringVar()
+EmailD = StringVar()
 
 # root
 
