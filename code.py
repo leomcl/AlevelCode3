@@ -7,22 +7,36 @@ from ttkthemes import ThemedTk
 import sqlite3
 
 
-
-# functions  
+# functions
 def raise_frame(frame_name):
     frame_name.tkraise()
+
+
+def usernameandpass():
+
+    conn = sqlite3.connect('data.db')
+    mycursor = conn.cursor()
+
+    sql = "INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)"
+    val = ("leo", "leo", "customs")
+    mycursor.execute(sql, val)
+
+    conn.commit()
+    print('done')
+
+
 
 
 def login():
     MangerMenu()
 
 
-def Login():
+def login():
     Finialusername = username.get()
 
     Finialpassword = Password.get()
     print(Finialpassword, Finialusername)
-    conn = sqlite3.connect('hannon.db')
+    conn = sqlite3.connect('data.db')
     c = conn.cursor()
     c.execute("SELECT rowid, * from passwords WHERE username = (?)", (Finialusername,))
     reader = c.fetchall()
@@ -74,20 +88,20 @@ def DelDriver():
 def EmailDriver():
     pass
 
+root = ThemedTk(theme='yaru')
+root.geometry('550x500')
+root.title('Logistyics App')
+root.configure(background='white')
 
 # variables
-username = ''
-Password = ''
+username = StringVar()
+Password = StringVar()
 MangerTVSerVal = ''
 FirstNameD = ''
 LastNameD = ''
 EmailD = ''
 
 # root
-root = ThemedTk(theme='yaru')
-root.geometry('550x500')
-root.title('Logistyics App')
-root.configure(background='white')
 
 # frames
 loginframe = Frame(root, bg='white')
@@ -100,8 +114,8 @@ ManagerStaffFrame = Frame(root, bg='light grey')
 ManagerClassesFrame = Frame(root, bg='light grey')
 
 for frame in (
-loginframe, create_account_frame, resetpasswordframe, membermenuframe, managermenuframe, MangerDriverFrame,
-ManagerStaffFrame, ManagerClassesFrame):
+        loginframe, create_account_frame, resetpasswordframe, membermenuframe, managermenuframe, MangerDriverFrame,
+        ManagerStaffFrame, ManagerClassesFrame):
     frame.grid(row=0, column=0, sticky='news')
 
 # compoents
@@ -200,14 +214,15 @@ LastNameentryD = ttk.Entry(managerInputsFrameDriver, textvariable=LastNameD).gri
 EmailLabelD = ttk.Label(managerInputsFrameDriver, text='Email:').grid(row=0, column=4, padx=10)
 EmailentryD = ttk.Entry(managerInputsFrameDriver, textvariable=EmailD).grid(row=0, column=5)
 
-AddDriverButton = ttk.Button(managerInputsFrameDriver, text='Add Driver', command=AddDriver).grid(row=1, column=0, padx=10,
-                                                                                              pady=10)
+AddDriverButton = ttk.Button(managerInputsFrameDriver, text='Add Driver', command=AddDriver).grid(row=1, column=0,
+                                                                                                  padx=10,
+                                                                                                  pady=10)
 
 DelDriverButton = ttk.Button(managerInputsFrameDriver, text='Delete Driver', command=DelDriver).grid(row=1, column=2,
-                                                                                                 padx=10, pady=10)
+                                                                                                     padx=10, pady=10)
 
 EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', command=EmailDriver).grid(row=1, column=4,
-                                                                                                  padx=10, pady=10)
+                                                                                                      padx=10, pady=10)
 
 raise_frame(loginframe)
 root.mainloop()
