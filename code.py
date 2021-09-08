@@ -5,6 +5,13 @@ import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
 import sqlite3
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import random
+import config
 
 
 # functions
@@ -13,18 +20,15 @@ def raise_frame(frame_name):
 
 
 def usernameandpass():
-
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
 
     sql = "INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)"
-    val = ("leo", "leo", "customs")
+    val = ("leo.mcl616@gmail.com", "leo", "customs")
     mycursor.execute(sql, val)
 
     conn.commit()
     print('done')
-
-
 
 
 def login():
@@ -59,7 +63,62 @@ def login():
 
 
 def forgot_password():
+    global number
+    number = random.randint(1111, 9999)
+    print('OTP:', number)
+    global email
+    email = simpledialog.askstring("Information", "Enter email:")
+    # global forget_email
+    # forget_email = email
+    subject = 'Reset Password'
+    msg = MIMEMultipart()
+    msg['From'] = config.emailAddress
+    msg['To'] = email
+    msg['Subject'] = subject
+    body = 'Hello, your reset code is: ' + str(number)
+    msg.attach(MIMEText(body, 'plain'))
+
+    part = MIMEBase('application', 'octet-stream')
+    text = msg.as_string()
+
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT rowid, * from passwords WHERE username = (?)", (email,))
+    reader = c.fetchall()
+    print(reader)
+
+    for row in reader:
+        if email != row[1]:
+            messagebox.showinfo('Email Error', 'This account does not exist')
+
+        else:
+            try:
+                server = smtplib.SMTP('smtp.gmail.com:587')
+                server.ehlo()
+                server.starttls()
+                server.login(config.emailAddress, config.password)
+                server.sendmail(config.emailAddress, email, text)
+                server.quit()
+                print('email sent')
+                messagebox.showinfo('Email sent', 'Open up the email to redeem the code to reset your password')
+                raise_frame(resetpasswordframe)
+                resetpasswordframe.geometry('500x500')
+
+
+            except:
+                print('Email not sent')
+
+    conn.commit()
+    conn.close()
+
+
+def ResetPassword():
     pass
+
+
+def BackLogin():
+    raise_frame(loginframe)
+    root.geometry('640x600')
 
 
 def Button1():
@@ -111,25 +170,32 @@ def DelDriver():
 def EmailDriver():
     pass
 
+
 root = ThemedTk(theme='yaru')
 root.geometry('550x500')
 root.title('Logistyics App')
 root.configure(background='white')
 
 # variables
+# login
+
 username = StringVar()
 Password = StringVar()
+
+# manger driver
 MangerTVSerVal = StringVar()
 FirstNameD = StringVar()
 LastNameD = StringVar()
 EmailD = StringVar()
 
-# root
+# rest psssword
+REpassword1 = StringVar()
+REpassword2 = StringVar()
 
 # frames
 loginframe = Frame(root, bg='white')
-create_account_frame = Frame(root, bg='light grey')
-resetpasswordframe = Frame(root, bg='light grey')
+create_account_frame = Frame(root, bg='white')
+resetpasswordframe = Frame(root, bg='white')
 membermenuframe = Frame(root, bg='white')
 managermenuframe = Frame(root, bg='white')
 MangerDriverFrame = Frame(root, bg='white')
@@ -162,6 +228,32 @@ login_button.grid(row=3, column=2)
 
 forgot_password_button = ttk.Button(loginframe, text='Forgot password', command=forgot_password)
 forgot_password_button.grid(row=3, column=3, pady=10)
+
+# resetpasswordframe
+photologinforgotscreen = PhotoImage(file='Hannon-Transport.png')
+photolabel2 = Label(resetpasswordframe, image=photologinforgotscreen, bg='white')
+photolabel2.grid(row=0, column=0, sticky=N, columnspan=6)
+
+Code_label1 = ttk.Label(resetpasswordframe, text='Code:', font=18)
+Code_label1.grid(row=1, column=2)
+Code_entry1 = ttk.Entry(resetpasswordframe, textvariable=REpassword1, font=18)
+Code_entry1.grid(row=1, column=3)
+
+Password_label1 = ttk.Label(resetpasswordframe, text='Password:', font=18)
+Password_label1.grid(row=2, column=2)
+Password_entry1 = ttk.Entry(resetpasswordframe, textvariable=REpassword1, font=18)
+Password_entry1.grid(row=2, column=3)
+
+Password_label = ttk.Label(resetpasswordframe, text='Re-enter Password:', font=18)
+Password_label.grid(row=3, column=2)
+Password_entry = ttk.Entry(resetpasswordframe, textvariable=REpassword2, font=18)
+Password_entry.grid(row=3, column=3)
+
+login_button = ttk.Button(resetpasswordframe, text='Reset', command=ResetPassword)
+login_button.grid(row=4, column=3)
+
+forgot_password_button = ttk.Button(resetpasswordframe, text='Back', command=BackLogin)
+forgot_password_button.grid(row=4, column=2, pady=10)
 
 # managermenuframe frame
 labelframe = LabelFrame(managermenuframe, text='', bg='white', pady=5, padx=5)
