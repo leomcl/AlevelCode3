@@ -19,12 +19,33 @@ def raise_frame(frame_name):
     frame_name.tkraise()
 
 
+def BackLogin():
+    raise_frame(loginframe)
+    root.geometry('640x600')
+
+
+def Button1():
+    raise_frame(MangerDriverFrame)
+    root.geometry('900x600')
+
+
+def MangerMenu():
+    raise_frame(managermenuframe)
+    root.geometry('900x600')
+
+
+def ManagerDriver():
+    ShowDriverTV()
+    raise_frame(MangerDriverFrame)
+    root.geometry('900x600')
+
+
 def usernameandpass():
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
 
     sql = "INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)"
-    val = ("leo.mcl616@gmail.com", "leo", "customs")
+    val = ("leo", "leo", "customs")
     mycursor.execute(sql, val)
 
     conn.commit()
@@ -75,7 +96,7 @@ def forgot_password():
     msg['From'] = config.emailAddress
     msg['To'] = email
     msg['Subject'] = subject
-    body = 'Hello, your reset code is: ' + str(number)
+    body = 'Reset code is: ' + str(number)
     msg.attach(MIMEText(body, 'plain'))
 
     part = MIMEBase('application', 'octet-stream')
@@ -100,10 +121,9 @@ def forgot_password():
                 server.sendmail(config.emailAddress, email, text)
                 server.quit()
                 print('email sent')
-                messagebox.showinfo('Email sent', 'Open up the email to redeem the code to reset your password')
+                messagebox.showinfo('Email sent', 'Code sent in email.')
                 raise_frame(resetpasswordframe)
                 resetpasswordframe.geometry('500x500')
-
 
             except:
                 print('Email not sent')
@@ -113,28 +133,40 @@ def forgot_password():
 
 
 def ResetPassword():
-    pass
+    FinialNewPassword = REpassword1.get()
+    FinialNewPassword2 = REpassword2.get()
+    FinialOTPcode = OTPcode.get()
 
+    print(number, FinialOTPcode)
+    if len(FinialNewPassword) < 8:
+        print('Invalid password')
+    else:
+        if str(FinialOTPcode) == str(number) and FinialNewPassword2 == FinialNewPassword:
+            value = (FinialNewPassword, email)
+            conn = sqlite3.connect('data.db')
+            c = conn.cursor()
 
-def BackLogin():
-    raise_frame(loginframe)
-    root.geometry('640x600')
+            c.execute("""UPDATE passwords SET password = ?
+			WHERE username = ?
+			""", value)
 
+            conn.commit()
+            conn.close()
+            raise_frame(loginframe)
+            messagebox.showinfo('Password Reset',
+                                'Your password has been reset Successfully. Login with your new password')
 
-def Button1():
-    raise_frame(MangerDriverFrame)
-    root.geometry('640x600')
+        elif str(FinialOTPcode) != str(number) and FinialNewPassword2 == FinialNewPassword:
+            messagebox.showinfo('Code', 'Reset password code does match the one sent in the email')
 
+        elif str(FinialOTPcode) == str(number) and FinialNewPassword2 != FinialNewPassword:
+            messagebox.showinfo('Invalid password Error', 'New password must match confirm password')
 
-def MangerMenu():
-    raise_frame(managermenuframe)
-    root.geometry('640x600')
-
-
-def ManagerDriver():
-    ShowDriverTV()
-    raise_frame(MangerDriverFrame)
-    root.geometry('640x600')
+        else:
+            messagebox.showinfo('Invalid Error', 'Error password does not match confrm password try again')
+            FinialOTPcode.set('')
+            FinialNewPassword.set('')
+            FinialNewPassword2.set('')
 
 
 def ShowDriverTV():
@@ -148,6 +180,8 @@ def ShowDriverTV():
 
 
 def AddDriver():
+    type = 'driver'
+    password = 'NotSet'
     Ffirstname = FirstNameD.get()
     Flastname = LastNameD.get()
     Femail = EmailD.get()
@@ -157,14 +191,58 @@ def AddDriver():
     sql = "INSERT INTO drivers (email, firstname, lastname, deliveries, avaliablity) VALUES (?, ?, ?, ?, ?)"
     val = (Femail, Ffirstname, Flastname, 0, "Yes")
     mycursor.execute(sql, val)
-
+    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, type, password))
     conn.commit()
-    print('done')
+
+    subject = 'New Hannon Account'
+    msg = MIMEMultipart()
+    msg['From'] = config.emailAddress
+    msg['To'] = Femail
+    msg['Subject'] = subject
+    body = 'Welcome to hannon computer system. To set password click "reset password"'
+    msg.attach(MIMEText(body, 'plain'))
+
+    part = MIMEBase('application', 'octet-stream')
+    text = msg.as_string()
+    try:
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(config.emailAddress, config.password)
+        server.sendmail(config.emailAddress, Femail, text)
+        server.quit()
+        print('email sent')
+        messagebox.showinfo('Info', 'Added ')
+        raise_frame(resetpasswordframe)
+        resetpasswordframe.geometry('500x500')
+
+    except:
+        print('Email not sent')
+
     ShowDriverTV()
 
 
 def DelDriver():
-    pass
+    curItem = managerTVDriver.focus()
+    dictionary = managerTVDriver.item(curItem)
+    print(curItem)
+    print(dictionary)
+    listvalues = list(dictionary.values())
+    print(listvalues)
+    TheEmail = listvalues[0]
+    print(TheEmail)
+    conn = sqlite3.connect('data.db')
+    Response = messagebox.askyesno('Are you sure', 'Are you sure you want to delete this user ')
+    if Response:
+        c = conn.cursor()
+        c.execute("DELETE from drivers WHERE email = (?)", (TheEmail,))
+        c.execute("DELETE from passwords WHERE username = (?)", (TheEmail,))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo('Info', str(TheEmail) + ' Has been deleted')
+        ShowDriverTV()
+    elif Response == 'No':
+        Response.destroy()
 
 
 def EmailDriver():
@@ -191,6 +269,7 @@ EmailD = StringVar()
 # rest psssword
 REpassword1 = StringVar()
 REpassword2 = StringVar()
+OTPcode = StringVar()
 
 # frames
 loginframe = Frame(root, bg='white')
@@ -226,7 +305,7 @@ Password_entry.grid(row=2, column=3)
 login_button = ttk.Button(loginframe, text='Login', command=login)
 login_button.grid(row=3, column=2)
 
-forgot_password_button = ttk.Button(loginframe, text='Forgot password', command=forgot_password)
+forgot_password_button = ttk.Button(loginframe, text='Reset password', command=forgot_password)
 forgot_password_button.grid(row=3, column=3, pady=10)
 
 # resetpasswordframe
@@ -236,7 +315,7 @@ photolabel2.grid(row=0, column=0, sticky=N, columnspan=6)
 
 Code_label1 = ttk.Label(resetpasswordframe, text='Code:', font=18)
 Code_label1.grid(row=1, column=2)
-Code_entry1 = ttk.Entry(resetpasswordframe, textvariable=REpassword1, font=18)
+Code_entry1 = ttk.Entry(resetpasswordframe, textvariable=OTPcode, font=18)
 Code_entry1.grid(row=1, column=3)
 
 Password_label1 = ttk.Label(resetpasswordframe, text='Password:', font=18)
