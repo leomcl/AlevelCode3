@@ -31,13 +31,14 @@ def Button1():
 
 def MangerMenu():
     raise_frame(managermenuframe)
-    root.geometry('2400x1300')
+    root.geometry('1400x800')
 
 
 def ManagerDriver():
     ShowDriverTV()
+    ShowDriverPreformaceTV()
     raise_frame(MangerDriverFrame)
-    root.geometry('2400x1300')
+    root.geometry('1400x800')
 
 
 def usernameandpass():
@@ -245,6 +246,31 @@ def EmailDriver():
     pass
 
 
+def ShowDriverPreformaceTV():
+    FinialSerTV = SerTV.get()
+    print(FinialSerTV)
+    if FinialSerTV == 'All':
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerDriverPrefTVDriver.delete(*managerDriverPrefTVDriver.get_children())
+        c.execute("SELECT * FROM driverPreformace")
+        for row in c:
+            managerDriverPrefTVDriver.insert('', 'end', text=row[0], values=row[1:3])
+        print(c)
+    elif FinialSerTV == 'New Lates':
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerDriverPrefTVDriver.delete(*managerDriverPrefTVDriver.get_children())
+        c.execute("SELECT * FROM driverPreformace WHERE newLAte != 0")
+        for row in c:
+            managerDriverPrefTVDriver.insert('', 'end', text=row[0], values=row[1:3])
+        print(c)
+
+
+def UpdateDriverMangerWidg():
+    pass
+
+
 root = ThemedTk(theme='yaru')
 root.geometry('550x500')
 root.title('Logistyics App')
@@ -261,6 +287,7 @@ MangerTVSerVal = StringVar()
 FirstNameD = StringVar()
 LastNameD = StringVar()
 EmailD = StringVar()
+SerTV = StringVar()
 
 # rest psssword
 REpassword1 = StringVar()
@@ -442,15 +469,51 @@ EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', comm
 
 # widgits on mangerdriverframe
 managerWidgFrameDriver = LabelFrame(MangerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
-managerWidgFrameDriver.grid(row=1, column=0, padx=10, sticky=NE, columnspan=3)
+managerWidgFrameDriver.grid(row=2, column=0, padx=10, sticky=NE, columnspan=3, ipadx=20, ipady=20)
 managerWidgFrameDriver.configure(bg='white')
 
-AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: 0 ', font=15).grid(row=0,
+AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: 0 ', font=40).grid(row=0,
                                                                                                            column=0,
-                                                                                                           padx=10)
-UnAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Unavailable Drivers: 0 ', font=15).grid(row=1,
+                                                                                                           padx=40,
+                                                                                                           pady=20)
+
+UnAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Unavailable Drivers: 0 ', font=40).grid(row=1,
                                                                                                                column=0,
-                                                                                                               padx=10)
+                                                                                                               padx=40,
+                                                                                                               pady=20)
+
+NewLatesDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='New Lates: 0 ', font=40).grid(row=2,
+                                                                                                   column=0,
+                                                                                                   padx=40,
+                                                                                                   pady=20)
+
+managerPreoformacesrameDriver = LabelFrame(MangerDriverFrame, text='Preformaces', bg='white', pady=5, padx=5)
+managerPreoformacesrameDriver.grid(row=1, column=0, padx=10, sticky=NE, columnspan=3, ipadx=20, ipady=20)
+managerPreoformacesrameDriver.configure(bg='white')
+
+SerTVperformacesLabelD = ttk.Label(managerPreoformacesrameDriver, text='Show:', font=13).grid(row=0, column=0, padx=17)
+
+SearchOptions = [
+    "New Lates",
+    "All"]
+
+SerTV.set('All')
+SerTVDrop = tk.OptionMenu(managerPreoformacesrameDriver, SerTV, *SearchOptions).grid(row=0, column=1, padx=5)
+
+SerPreformaTVButton = ttk.Button(managerPreoformacesrameDriver, text='Search', command=ShowDriverPreformaceTV).grid(
+    row=0, column=2,
+    padx=5)
+
+managerDriverPrefTVDriver = ttk.Treeview(managerPreoformacesrameDriver, height=10,
+                                         columns=('New Lates', 'Total Lates'))
+managerDriverPrefTVDriver.grid(row=2, column=0, columnspan=30, pady=10, padx=30)
+
+managerDriverPrefTVDriver.heading('#0', text='Email')
+managerDriverPrefTVDriver.column('#0', minwidth=0, width=150, anchor='center')
+managerDriverPrefTVDriver.heading('#1', text='New lates')
+managerDriverPrefTVDriver.column('#1', minwidth=0, width=100, anchor='center')
+managerDriverPrefTVDriver.heading('#2', text='Total lates')
+managerDriverPrefTVDriver.column('#2', minwidth=0, width=100, anchor='center')
 
 raise_frame(loginframe)
 root.mainloop()
