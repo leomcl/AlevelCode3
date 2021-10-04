@@ -221,6 +221,7 @@ def AddDriver():
     ShowDriverTV()
     UpdateDriverMangerWidg()
 
+
 def DelDriver():
     curItem = managerTVDriver.focus()
     dictionary = managerTVDriver.item(curItem)
@@ -242,6 +243,7 @@ def DelDriver():
     elif Response == 'No':
         Response.destroy()
     UpdateDriverMangerWidg()
+
 
 def EmailDriver():
     pass
@@ -293,8 +295,14 @@ def UpdateDriverMangerWidg():
         AmountNew += 1
     LableValueNew.set(AmountNew)
 
+def EmailDriverWarningAll():
+    pass
 
+def EmailDriverWarningNew():
+    pass
 
+def EmailDriverWarningSel():
+    pass
 
 
 root = ThemedTk(theme='yaru')
@@ -493,8 +501,10 @@ AddDriverButton = ttk.Button(managerInputsFrameDriver, text='Add Driver', comman
 DelDriverButton = ttk.Button(managerInputsFrameDriver, text='Delete Driver', command=DelDriver).grid(row=1, column=2,
                                                                                                      padx=10, pady=10)
 
-EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', command=UpdateDriverMangerWidg).grid(row=1, column=4,
-                                                                                                      padx=10, pady=10)
+EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', command=UpdateDriverMangerWidg).grid(row=1,
+                                                                                                                 column=4,
+                                                                                                                 padx=10,
+                                                                                                                 pady=10)
 
 # widgits on mangerdriverframe
 managerWidgFrameDriver = LabelFrame(MangerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
@@ -502,34 +512,34 @@ managerWidgFrameDriver.grid(row=2, column=0, padx=10, sticky=NE, columnspan=3, i
 managerWidgFrameDriver.configure(bg='white')
 
 AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: ', font=60).grid(row=0,
-                                                                                                           column=0,
-                                                                                                           padx=40,
-                                                                                                           pady=10)
+                                                                                                         column=0,
+                                                                                                         padx=40,
+                                                                                                         pady=10)
 
 ValueAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueYes, font=60).grid(row=0,
-                                                                                                           column=1,
-                                                                                                           padx=40,
-                                                                                                           pady=10)
+                                                                                                              column=1,
+                                                                                                              padx=40,
+                                                                                                              pady=10)
 
 UnAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Unavailable Drivers: ', font=60).grid(row=1,
-                                                                                                               column=0,
+                                                                                                             column=0,
+                                                                                                             padx=40,
+                                                                                                             pady=10)
+
+ValueNoAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueNo, font=60).grid(row=1,
+                                                                                                               column=1,
                                                                                                                padx=40,
                                                                                                                pady=10)
 
-ValueNoAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueNo, font=60).grid(row=1,
-                                                                                                           column=1,
-                                                                                                           padx=40,
-                                                                                                           pady=10)
-
 NewLatesDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='New Lates:', font=60).grid(row=2,
-                                                                                                   column=0,
-                                                                                                   padx=40,
-                                                                                                   pady=10)
+                                                                                                column=0,
+                                                                                                padx=40,
+                                                                                                pady=10)
 
 ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueNew, font=60).grid(row=2,
-                                                                                                           column=1,
-                                                                                                           padx=40,
-                                                                                                           pady=10)
+                                                                                                                 column=1,
+                                                                                                                 padx=40,
+                                                                                                                 pady=10)
 
 managerPreoformacesrameDriver = LabelFrame(MangerDriverFrame, text='Preformaces', bg='white', pady=5, padx=5)
 managerPreoformacesrameDriver.grid(row=1, column=0, padx=10, sticky=NE, columnspan=3, ipadx=20, ipady=20)
@@ -559,5 +569,19 @@ managerDriverPrefTVDriver.column('#1', minwidth=0, width=100, anchor='center')
 managerDriverPrefTVDriver.heading('#2', text='Total lates')
 managerDriverPrefTVDriver.column('#2', minwidth=0, width=100, anchor='center')
 
+EmailDriverPrefromaceAllButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning All', command=EmailDriverWarningAll).grid(row=3,
+                                                                                                                 column=0,
+                                                                                                                 padx=10,
+                                                                                                                 pady=5)
+
+EmailDriverPrefromaceNewButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning New', command=EmailDriverWarningNew).grid(row=3,
+                                                                                                                 column=1,
+                                                                                                                 padx=10,
+                                                                                                                 pady=5)
+
+EmailDriverPrefromaceSelButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning Selected', command=EmailDriverWarningSel).grid(row=3,
+                                                                                                                 column=2,
+                                                                                                                 padx=10,
+                                                                                                                 pady=5)
 raise_frame(loginframe)
 root.mainloop()
