@@ -13,9 +13,25 @@ from email import encoders
 import random
 import config
 import time
+from time import strftime
 
 
 # functions
+def LogOut():
+    raise_frame(loginframe)
+
+
+
+
+def timememberscreen():
+    def timemember():
+        string = strftime('%H:%M:%S %p')
+        adminMemberClockLabel.config(text=string)
+        adminMemberClockLabel.after(1000, timemember)
+
+    timemember()
+
+
 def raise_frame(frame_name):
     frame_name.tkraise()
 
@@ -31,6 +47,7 @@ def Button1():
 
 
 def MangerMenu():
+    timememberscreen()
     raise_frame(managermenuframe)
     root.geometry('1400x800')
 
@@ -295,11 +312,14 @@ def UpdateDriverMangerWidg():
         AmountNew += 1
     LableValueNew.set(AmountNew)
 
+
 def EmailDriverWarningAll():
     pass
 
+
 def EmailDriverWarningNew():
     pass
+
 
 def EmailDriverWarningSel():
     pass
@@ -350,6 +370,9 @@ for frame in (
 s = ttk.Style()
 s.configure('my.TButton', font=12)
 
+s2 = ttk.Style()
+s2.configure('menu.TButton', font=12, bg='white', fg='blue')
+
 # compoents
 # log in frame
 photologinscreen = PhotoImage(file='Hannon-Transport.png')
@@ -399,27 +422,53 @@ forgot_password_button = ttk.Button(resetpasswordframe, text='Back', command=Bac
 forgot_password_button.grid(row=4, column=2, pady=10)
 
 # managermenuframe frame
-labelframe = Frame(managermenuframe, bg='white', pady=5, padx=5)
-labelframe.grid(row=0, column=0)
+labelframe = Frame(managermenuframe, bg='#0E2B4D', pady=5, padx=5)
+labelframe.grid(row=1, column=0, sticky=NW)
 
-photomangermenuscreen = PhotoImage(file='Hannon-Transport Small.png')
-photolabelmanager = ttk.Label(labelframe, image=photomangermenuscreen)
-photolabelmanager.grid(row=0, column=0, sticky=N)
+Button1 = Button(labelframe, command=ManagerDriver, text='Driver', bg='#0E2B4D', fg='white', font=12).grid(row=1,
+                                                                                                           column=0,
+                                                                                                           ipady=10,
+                                                                                                           ipadx=80)
+Button2 = Button(labelframe, command=Button1, text='Button2', bg='#0E2B4D', fg='white', font=12).grid(row=2, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=73)
+Button3 = Button(labelframe, command=Button1, text='Button3', bg='#0E2B4D', fg='white', font=12).grid(row=3, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=73)
+Button4 = Button(labelframe, command=Button1, text='Button4', bg='#0E2B4D', fg='white', font=12).grid(row=4, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=73)
+Button5 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=5, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=73)
+Button6 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=6, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=73)
+Button7 = Button(labelframe, command=MangerMenu, text='Menu', bg='#0E2B4D', fg='white', font=12).grid(row=7, column=0,
+                                                                                                      ipady=10,
+                                                                                                      ipadx=82)
 
-Button1 = ttk.Button(labelframe, command=ManagerDriver, text='Driver', style='my.TButton').grid(row=0, column=1,
-                                                                                                ipady=10, pady=7.5)
-Button2 = ttk.Button(labelframe, command=Button1, text='Button2', style='my.TButton').grid(row=0, column=2, ipady=10,
-                                                                                           padx=5)
-Button3 = ttk.Button(labelframe, command=Button1, text='Button3', style='my.TButton').grid(row=0, column=3, ipady=10,
-                                                                                           padx=5)
-Button4 = ttk.Button(labelframe, command=Button1, text='Button4', style='my.TButton').grid(row=0, column=4, ipady=10,
-                                                                                           padx=5)
-Button5 = ttk.Button(labelframe, command=Button1, text='Button5', style='my.TButton').grid(row=0, column=5, ipady=10,
-                                                                                           padx=5)
-Button6 = ttk.Button(labelframe, command=Button1, text='Button5', style='my.TButton').grid(row=0, column=6, ipady=10,
-                                                                                           padx=5)
-Button7 = ttk.Button(labelframe, command=MangerMenu, text='Menu', style='my.TButton').grid(row=0, column=7, ipady=10,
-                                                                                           padx=5)
+labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
+labelframe2.grid(row=0, column=0, columnspan=3)
+
+photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
+photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
+photolabelmanager.grid(row=0, column=0, sticky=N, pady=5)
+
+username_label = Label(labelframe2, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
+username_label.grid(row=0, column=2, padx=150)
+
+adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
+adminMemberClockLabel.grid(row=0, column=3, padx=10)
+
+LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
+                                                                                                               column=4,
+                                                                                                               ipady=30,
+                                                                                                               ipadx=10)
+
+
+
+
 
 # MangerDriverFrame
 Driverlabelframe = Frame(MangerDriverFrame, bg='white')
@@ -569,19 +618,22 @@ managerDriverPrefTVDriver.column('#1', minwidth=0, width=100, anchor='center')
 managerDriverPrefTVDriver.heading('#2', text='Total lates')
 managerDriverPrefTVDriver.column('#2', minwidth=0, width=100, anchor='center')
 
-EmailDriverPrefromaceAllButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning All', command=EmailDriverWarningAll).grid(row=3,
-                                                                                                                 column=0,
-                                                                                                                 padx=10,
-                                                                                                                 pady=5)
+EmailDriverPrefromaceAllButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning All',
+                                            command=EmailDriverWarningAll).grid(row=3,
+                                                                                column=0,
+                                                                                padx=10,
+                                                                                pady=5)
 
-EmailDriverPrefromaceNewButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning New', command=EmailDriverWarningNew).grid(row=3,
-                                                                                                                 column=1,
-                                                                                                                 padx=10,
-                                                                                                                 pady=5)
+EmailDriverPrefromaceNewButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning New',
+                                            command=EmailDriverWarningNew).grid(row=3,
+                                                                                column=1,
+                                                                                padx=10,
+                                                                                pady=5)
 
-EmailDriverPrefromaceSelButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning Selected', command=EmailDriverWarningSel).grid(row=3,
-                                                                                                                 column=2,
-                                                                                                                 padx=10,
-                                                                                                                 pady=5)
+EmailDriverPrefromaceSelButton = ttk.Button(managerPreoformacesrameDriver, text='Send Warning Selected',
+                                            command=EmailDriverWarningSel).grid(row=3,
+                                                                                column=2,
+                                                                                padx=10,
+                                                                                pady=5)
 raise_frame(loginframe)
 root.mainloop()
