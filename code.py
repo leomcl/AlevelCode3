@@ -14,13 +14,92 @@ import random
 import config
 import time
 from time import strftime
-
+from PIL import Image, ImageTk
 
 # functions
+min_w = 60  # Minimum width of the frame
+max_w = 200  # Maximum width of the frame
+cur_width = min_w  # Increasing width of the frame
+expanded = False  # Check if it is completely exanded
+
+
+def expand():
+    global cur_width, expanded
+    cur_width += 10  # Increase the width by 10
+    rep = root.after(5, expand)  # Repeat this func every 5 ms
+    frame.config(width=cur_width)  # Change the width to new increase width
+    if cur_width >= max_w:  # If width is greater than maximum width
+        expanded = True  # Frame is expended
+        root.after_cancel(rep)  # Stop repeating the func
+        fill()
+
+
+def contract():
+    global cur_width, expanded
+    cur_width -= 10  # Reduce the width by 10
+    rep = root.after(5, contract)  # Call this func every 5 ms
+    frame.config(width=cur_width)  # Change the width to new reduced width
+    if cur_width <= min_w:  # If it is back to normal width
+        expanded = False  # Frame is not expanded
+        root.after_cancel(rep)  # Stop repeating the func
+        fill()
+
+
+def fill():
+    if expanded:  # If the frame is exanded
+        # Show a text, and remove the image
+        home_b.config(text='Home', image='', font=(0, 21), fg='white')
+        set_b.config(text='Drivers', image='', font=(0, 21), fg='white')
+        ring_b.config(text='Dashbaord', image='', font=(0, 21), fg='white')
+    else:
+        # Bring the image back
+        home_b.config(image=home, font=(0, 21))
+        set_b.config(image=settings, font=(0, 21))
+        ring_b.config(image=ring, font=(0, 21))
+
+
+expanded2 = False  # Check if it is completely exanded
+min_w2 = 60  # Minimum width of the frame
+max_w2 = 200  # Maximum width of the frame
+cur_width2 = min_w2  # Increasing width of the frame
+
+def expand2():
+    global cur_width2, expanded2
+    cur_width2 += 20  # Increase the width by 10
+    rep2 = root.after(1, expand2)  # Repeat this func every 5 ms
+    frame2.config(width=cur_width2)  # Change the width to new increase width
+    if cur_width2 >= max_w2:  # If width is greater than maximum width
+        expanded2 = True  # Frame is expended
+        root.after_cancel(rep2)  # Stop repeating the func
+        fill2()
+
+
+def contract2():
+    global cur_width2, expanded2
+    cur_width2 -= 20  # Reduce the width by 10
+    rep2 = root.after(1, contract2)  # Call this func every 5 ms
+    frame2.config(width=cur_width2)  # Change the width to new reduced width
+    if cur_width2 <= min_w2:  # If it is back to normal width
+        expanded2 = False  # Frame is not expanded
+        root.after_cancel(rep2)  # Stop repeating the func
+        fill2()
+
+
+def fill2():
+    if expanded2:  # If the frame is exanded
+        # Show a text, and remove the image
+        home_b2.config(text='Home', image='', font=(0, 21), fg='white')
+        set_b2.config(text='Drivers', image='', font=(0, 21), fg='white')
+        ring_b2.config(text='Dashbaord', image='', font=(0, 21), fg='white')
+    else:
+        # Bring the image back
+        home_b2.config(image=home, font=(0, 21))
+        set_b2.config(image=settings, font=(0, 21))
+        ring_b2.config(image=ring, font=(0, 21))
+
+
 def LogOut():
     raise_frame(loginframe)
-
-
 
 
 def timememberscreen():
@@ -30,6 +109,15 @@ def timememberscreen():
         adminMemberClockLabel.after(1000, timemember)
 
     timemember()
+
+
+def timemenurscreen():
+    def timemember2():
+        string = strftime('%H:%M:%S %p')
+        adminMemberClockLabel2.config(text=string)
+        adminMemberClockLabel2.after(1000, timemember2)
+
+    timemember2()
 
 
 def raise_frame(frame_name):
@@ -53,6 +141,7 @@ def MangerMenu():
 
 
 def ManagerDriver():
+    timemenurscreen()
     ShowDriverTV()
     ShowDriverPreformaceTV()
     UpdateDriverMangerWidg()
@@ -398,7 +487,7 @@ forgot_password_button.grid(row=3, column=3, pady=10)
 # resetpasswordframe
 photologinforgotscreen = PhotoImage(file='Hannon-Transport.png')
 photolabel2 = Label(resetpasswordframe, image=photologinforgotscreen, bg='white')
-photolabel2.grid(row=0, column=0, sticky=N, columnspan=6)
+photolabel2.grid(row=0, column=0, sticky=NW, columnspan=6)
 
 Code_label1 = ttk.Label(resetpasswordframe, text='Code:', font=18)
 Code_label1.grid(row=1, column=2)
@@ -422,38 +511,38 @@ forgot_password_button = ttk.Button(resetpasswordframe, text='Back', command=Bac
 forgot_password_button.grid(row=4, column=2, pady=10)
 
 # managermenuframe frame
-labelframe = Frame(managermenuframe, bg='#0E2B4D', pady=5, padx=5)
-labelframe.grid(row=1, column=0, sticky=NW)
+# Define the icons to be shown and resize it
+home = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
+settings = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
+ring = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
 
-Button1 = Button(labelframe, command=ManagerDriver, text='Driver', bg='#0E2B4D', fg='white', font=12).grid(row=1,
-                                                                                                           column=0,
-                                                                                                           ipady=10,
-                                                                                                           ipadx=80)
-Button2 = Button(labelframe, command=Button1, text='Button2', bg='#0E2B4D', fg='white', font=12).grid(row=2, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button3 = Button(labelframe, command=Button1, text='Button3', bg='#0E2B4D', fg='white', font=12).grid(row=3, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button4 = Button(labelframe, command=Button1, text='Button4', bg='#0E2B4D', fg='white', font=12).grid(row=4, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button5 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=5, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button6 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=6, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button7 = Button(labelframe, command=MangerMenu, text='Menu', bg='#0E2B4D', fg='white', font=12).grid(row=7, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=82)
+root.update()  # For the width to get updated
+frame = Frame(managermenuframe, bg='#0E2B4D', width=60, height=root.winfo_height())
+frame.grid(row=1, column=0, sticky=NW)
+
+# Make the buttons with the icons to be shown
+home_b = Button(frame, image=home, bg='#0E2B4D', relief='flat')
+set_b = Button(frame, image=settings, bg='#0E2B4D', command=ManagerDriver, relief='flat')
+ring_b = Button(frame, image=ring, bg='#0E2B4D', command=MangerMenu, relief='flat')
+
+# Put them on the frame
+home_b.grid(row=0, column=0, pady=10)
+set_b.grid(row=1, column=0, pady=50)
+ring_b.grid(row=2, column=0)
+
+# Bind to the frame, if entered or left
+frame.bind('<Enter>', lambda e: expand())
+frame.bind('<Leave>', lambda e: contract())
+
+# So that it does not depend on the widgets inside the frame
+frame.grid_propagate(False)
 
 labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
 labelframe2.grid(row=0, column=0, columnspan=3, sticky=NW)
 
 photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
 photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
-photolabelmanager.grid(row=0, column=0, sticky=N, pady=5)
+photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
 
 username_label = Label(labelframe2, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
 username_label.grid(row=0, column=2, padx=150)
@@ -462,9 +551,9 @@ adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold'
 adminMemberClockLabel.grid(row=0, column=3, padx=10)
 
 LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
-                                                                                                               column=4,
-                                                                                                               ipady=30,
-                                                                                                               ipadx=10)
+                                                                                                           column=4,
+                                                                                                           ipady=30,
+                                                                                                           ipadx=10)
 
 managerTVFrameDriver = Frame(managermenuframe)
 managerTVFrameDriver.grid(row=1, column=1, sticky=NW)
@@ -502,53 +591,49 @@ def do_popup_staff(event):
 
 managerTVDriver.bind("<Button-3>", do_popup_staff)
 
-
-
-
 # MangerDriverFrame
-labelframe = Frame(MangerDriverFrame, bg='#0E2B4D', pady=5, padx=5)
-labelframe.grid(row=1, column=0, sticky=NW)
+home2 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
+settings2 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
+ring2 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
 
-Button1 = Button(labelframe, command=ManagerDriver, text='Driver', bg='#0E2B4D', fg='white', font=12).grid(row=1,
-                                                                                                           column=0,
-                                                                                                           ipady=10,
-                                                                                                           ipadx=80)
-Button2 = Button(labelframe, command=Button1, text='Button2', bg='#0E2B4D', fg='white', font=12).grid(row=2, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button3 = Button(labelframe, command=Button1, text='Button3', bg='#0E2B4D', fg='white', font=12).grid(row=3, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button4 = Button(labelframe, command=Button1, text='Button4', bg='#0E2B4D', fg='white', font=12).grid(row=4, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button5 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=5, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button6 = Button(labelframe, command=Button1, text='Button5', bg='#0E2B4D', fg='white', font=12).grid(row=6, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=73)
-Button7 = Button(labelframe, command=MangerMenu, text='Menu', bg='#0E2B4D', fg='white', font=12).grid(row=7, column=0,
-                                                                                                      ipady=10,
-                                                                                                      ipadx=82)
+root.update()  # For the width to get updated
+frame2 = Frame(MangerDriverFrame, bg='#0E2B4D', width=60, height=root.winfo_height())
+frame2.grid(row=1, column=0, sticky=NW)
 
-labelframe2 = Frame(MangerDriverFrame, bg='#0E2B4D')
-labelframe2.grid(row=0, column=0, sticky=NW, columnspan=10)
+# Make the buttons with the icons to be shown
+home_b2 = Button(frame2, image=home2, bg='#0E2B4D', relief='flat')
+set_b2 = Button(frame2, image=settings2, bg='#0E2B4D', command=ManagerDriver, relief='flat')
+ring_b2 = Button(frame2, image=ring2, bg='#0E2B4D', command=MangerMenu, relief='flat')
+
+# Put them on the frame
+home_b2.grid(row=0, column=0, pady=10)
+set_b2.grid(row=1, column=0, pady=50)
+ring_b2.grid(row=2, column=0)
+
+# Bind to the frame, if entered or left
+frame2.bind('<Enter>', lambda e: expand2())
+frame2.bind('<Leave>', lambda e: contract2())
+
+# So that it does not depend on the widgets inside the frame
+frame2.grid_propagate(False)
+
+labelframe3 = Frame(MangerDriverFrame, bg='#0E2B4D')
+labelframe3.grid(row=0, column=0, sticky=NW, columnspan=10)
 
 photomangerdriverscreen = PhotoImage(file='white-footer-logo.png')
-photolabelmanagerdriver = Label(labelframe2, image=photomangerdriverscreen, bg='#0E2B4D')
+photolabelmanagerdriver = Label(labelframe3, image=photomangerdriverscreen, bg='#0E2B4D')
 photolabelmanagerdriver.grid(row=0, column=0, sticky=N, pady=5)
 
-username_label = Label(labelframe2, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
+username_label = Label(labelframe3, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
 username_label.grid(row=0, column=2, padx=342)
 
-adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
-adminMemberClockLabel.grid(row=0, column=3, padx=10)
+adminMemberClockLabel2 = Label(labelframe3, bg='#0E2B4D', fg='white', font='bold')
+adminMemberClockLabel2.grid(row=0, column=3, padx=10)
 
-LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
-                                                                                                               column=4,
-                                                                                                               ipady=30,
-                                                                                                               ipadx=10)
+LOGoutButton = Button(labelframe3, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
+                                                                                                           column=4,
+                                                                                                           ipady=30,
+                                                                                                           ipadx=10)
 managerTVFrameDriver = Frame(MangerDriverFrame)
 managerTVFrameDriver.grid(row=1, column=1, sticky=NW)
 managerTVFrameDriver.configure(bg='white')
