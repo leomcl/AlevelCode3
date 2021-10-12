@@ -63,10 +63,11 @@ min_w2 = 60  # Minimum width of the frame
 max_w2 = 200  # Maximum width of the frame
 cur_width2 = min_w2  # Increasing width of the frame
 
+
 def expand2():
     global cur_width2, expanded2
-    cur_width2 += 20  # Increase the width by 10
-    rep2 = root.after(1, expand2)  # Repeat this func every 5 ms
+    cur_width2 += 150  # Increase the width by 10
+    rep2 = root.after(5, expand2)  # Repeat this func every 5 ms
     frame2.config(width=cur_width2)  # Change the width to new increase width
     if cur_width2 >= max_w2:  # If width is greater than maximum width
         expanded2 = True  # Frame is expended
@@ -76,8 +77,8 @@ def expand2():
 
 def contract2():
     global cur_width2, expanded2
-    cur_width2 -= 20  # Reduce the width by 10
-    rep2 = root.after(1, contract2)  # Call this func every 5 ms
+    cur_width2 -= 150  # Reduce the width by 10
+    rep2 = root.after(5, contract2)  # Call this func every 5 ms
     frame2.config(width=cur_width2)  # Change the width to new reduced width
     if cur_width2 <= min_w2:  # If it is back to normal width
         expanded2 = False  # Frame is not expanded
@@ -163,7 +164,6 @@ def usernameandpass():
 
 def login():
     Finialusername = username.get()
-
     Finialpassword = Password.get()
     print(Finialpassword, Finialusername)
     conn = sqlite3.connect('data.db')
@@ -421,7 +421,6 @@ root.configure(background='white')
 
 # variables
 # login
-
 username = StringVar()
 Password = StringVar()
 
@@ -434,6 +433,7 @@ SerTV = StringVar()
 LableValueYes = StringVar()
 LableValueNo = StringVar()
 LableValueNew = StringVar()
+UsernmaeLabel = ''
 
 # rest psssword
 REpassword1 = StringVar()
@@ -518,7 +518,7 @@ ring = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.A
 
 root.update()  # For the width to get updated
 frame = Frame(managermenuframe, bg='#0E2B4D', width=60, height=root.winfo_height())
-frame.grid(row=1, column=0, sticky=NW)
+frame.grid(row=1, column=0, sticky=NW, rowspan=4)
 
 # Make the buttons with the icons to be shown
 home_b = Button(frame, image=home, bg='#0E2B4D', relief='flat')
@@ -544,61 +544,25 @@ photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
 photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
 photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_label = Label(labelframe2, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
-username_label.grid(row=0, column=2, padx=150)
+username_label = Label(labelframe2, text='Dashboard', font=40, fg='white', bg='#0E2B4D')
+username_label.grid(row=0, column=2, padx=270)
 
 adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
-adminMemberClockLabel.grid(row=0, column=3, padx=10)
+adminMemberClockLabel.grid(row=0, column=4, padx=10)
 
 LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
-                                                                                                           column=4,
+                                                                                                           column=5,
                                                                                                            ipady=30,
                                                                                                            ipadx=10)
-
-managerTVFrameDriver = Frame(managermenuframe)
-managerTVFrameDriver.grid(row=1, column=1, sticky=NW)
-managerTVFrameDriver.configure(bg='white')
-
-SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:').grid(row=0, column=0, padx=10)
-search_entryD = ttk.Entry(managerTVFrameDriver, textvariable=MangerTVSerVal, width=90).grid(row=0, column=1)
-
-managerTVDriver = ttk.Treeview(managerTVFrameDriver, height=15,
-                               columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3'))
-managerTVDriver.grid(row=2, column=0, columnspan=30, pady=10, padx=30)
-
-managerTVDriver.heading('#0', text='Email')
-managerTVDriver.column('#0', minwidth=0, width=200, anchor='center')
-managerTVDriver.heading('#1', text='First Name')
-managerTVDriver.column('#1', minwidth=0, width=110, anchor='center')
-managerTVDriver.heading('#2', text='Last Name')
-managerTVDriver.column('#2', minwidth=0, width=130, anchor='center')
-managerTVDriver.heading('#3', text='Deliveries')
-managerTVDriver.column('#3', minwidth=0, width=120, anchor='center')
-managerTVDriver.heading('#4', text='Avaliabilty')
-managerTVDriver.column('#4', minwidth=0, width=70, anchor='center')
-
-popupmenustaff = Menu(managerTVFrameDriver, tearoff=0)
-popupmenustaff.add_command(label='Delete', command=DelDriver)
-popupmenustaff.add_command(label='Send Email', command=EmailDriver)
-
-
-def do_popup_staff(event):
-    try:
-        popupmenustaff.tk_popup(event.x_root, event.y_root)
-    finally:
-        popupmenustaff.grab_release()
-
-
-managerTVDriver.bind("<Button-3>", do_popup_staff)
 
 # MangerDriverFrame
 home2 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
 settings2 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
 ring2 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
 
-root.update()  # For the width to get updated
-frame2 = Frame(MangerDriverFrame, bg='#0E2B4D', width=60, height=root.winfo_height())
-frame2.grid(row=1, column=0, sticky=NW)
+MangerDriverFrame.update()  # For the width to get updated
+frame2 = Frame(MangerDriverFrame, bg='#0E2B4D', width=60, height=MangerDriverFrame.winfo_height())
+frame2.grid(row=1, column=0, sticky=NW, rowspan=4)
 
 # Make the buttons with the icons to be shown
 home_b2 = Button(frame2, image=home2, bg='#0E2B4D', relief='flat')
@@ -635,15 +599,15 @@ LOGoutButton = Button(labelframe3, command=LogOut, text='Log Out', bg='#0E2B4D',
                                                                                                            ipady=30,
                                                                                                            ipadx=10)
 managerTVFrameDriver = Frame(MangerDriverFrame)
-managerTVFrameDriver.grid(row=1, column=1, sticky=NW)
+managerTVFrameDriver.grid(row=1, column=1, sticky=NW, pady=5)
 managerTVFrameDriver.configure(bg='white')
 
-SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:').grid(row=0, column=0, padx=10)
+SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:').grid(row=0, column=0, padx=10, pady=5)
 search_entryD = ttk.Entry(managerTVFrameDriver, textvariable=MangerTVSerVal, width=90).grid(row=0, column=1)
 
-managerTVDriver = ttk.Treeview(managerTVFrameDriver, height=15,
+managerTVDriver = ttk.Treeview(managerTVFrameDriver, height=10,
                                columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3'))
-managerTVDriver.grid(row=2, column=0, columnspan=30, pady=10, padx=30)
+managerTVDriver.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
 
 managerTVDriver.heading('#0', text='Email')
 managerTVDriver.column('#0', minwidth=0, width=200, anchor='center')
@@ -671,7 +635,7 @@ def do_popup_staff(event):
 managerTVDriver.bind("<Button-3>", do_popup_staff)
 
 managerInputsFrameDriver = LabelFrame(MangerDriverFrame, text='Inputs', bg='white', pady=5, padx=5)
-managerInputsFrameDriver.grid(row=2, column=1, sticky=NW, padx=10)
+managerInputsFrameDriver.grid(row=2, column=1, sticky=NW, padx=1)
 managerInputsFrameDriver.configure(bg='white')
 
 FirstNameLabelD = ttk.Label(managerInputsFrameDriver, text='First Name:').grid(row=0, column=0, padx=10)
@@ -697,7 +661,7 @@ EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', comm
 
 # widgits on mangerdriverframe
 managerWidgFrameDriver = LabelFrame(MangerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
-managerWidgFrameDriver.grid(row=2, column=2, padx=10, sticky=NE, columnspan=3, ipadx=20, ipady=5)
+managerWidgFrameDriver.grid(row=2, column=2, padx=10, sticky=NW, columnspan=3, ipadx=20, ipady=5)
 managerWidgFrameDriver.configure(bg='white')
 
 AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: ', font=60).grid(row=0,
@@ -731,7 +695,7 @@ ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvaria
                                                                                                                  pady=10)
 
 managerPreoformacesrameDriver = LabelFrame(MangerDriverFrame, text='Preformaces', bg='white', pady=5, padx=5)
-managerPreoformacesrameDriver.grid(row=1, column=2, padx=10, sticky=NE, columnspan=3, ipadx=20, ipady=20)
+managerPreoformacesrameDriver.grid(row=1, column=2, padx=10, sticky=NW, columnspan=3)
 managerPreoformacesrameDriver.configure(bg='white')
 
 SerTVperformacesLabelD = ttk.Label(managerPreoformacesrameDriver, text='Show:', font=13).grid(row=0, column=0, padx=17)
