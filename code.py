@@ -66,7 +66,7 @@ cur_width2 = min_w2  # Increasing width of the frame
 
 def expand2():
     global cur_width2, expanded2
-    cur_width2 += 150  # Increase the width by 10
+    cur_width2 += 10  # Increase the width by 10
     rep2 = root.after(5, expand2)  # Repeat this func every 5 ms
     frame2.config(width=cur_width2)  # Change the width to new increase width
     if cur_width2 >= max_w2:  # If width is greater than maximum width
@@ -78,7 +78,7 @@ def expand2():
 def contract2():
     global cur_width2, expanded2
     cur_width2 -= 150  # Reduce the width by 10
-    rep2 = root.after(5, contract2)  # Call this func every 5 ms
+    rep2 = root.after(10, contract2)  # Call this func every 5 ms
     frame2.config(width=cur_width2)  # Change the width to new reduced width
     if cur_width2 <= min_w2:  # If it is back to normal width
         expanded2 = False  # Frame is not expanded
@@ -415,7 +415,7 @@ def EmailDriverWarningSel():
 
 
 root = ThemedTk(theme='yaru')
-root.geometry('550x500')
+root.geometry('550x800')
 root.title('Logistyics App')
 root.configure(background='white')
 
@@ -466,10 +466,10 @@ s2.configure('menu.TButton', font=12, bg='white', fg='blue')
 # log in frame
 photologinscreen = PhotoImage(file='Hannon-Transport.png')
 photolabel = Label(loginframe, image=photologinscreen, bg='white')
-photolabel.grid(row=0, column=0, sticky=N, columnspan=6)
+photolabel.place(x=0, y=0)
 
 username_label = ttk.Label(loginframe, text='Username:', font=18)
-username_label.grid(row=1, column=2)
+username_label.place(x=100, y=300)
 username_entry = ttk.Entry(loginframe, textvariable=username, font=18)
 username_entry.grid(row=1, column=3)
 
@@ -544,18 +544,38 @@ photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
 photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
 photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_label = Label(labelframe2, text='Dashboard', font=40, fg='white', bg='#0E2B4D')
-username_label.grid(row=0, column=2, padx=270)
+username_label = Label(labelframe2, text='Dashboard          ', font=40, fg='white', bg='#0E2B4D')
+username_label.grid(row=0, column=2, padx=370)
 
 adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
 adminMemberClockLabel.grid(row=0, column=4, padx=10)
 
-LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).grid(row=0,
-                                                                                                           column=5,
-                                                                                                           ipady=30,
-                                                                                                           ipadx=10)
+
+compnets = Frame(managermenuframe, bg='#0E2B4D')
+compnets.grid(row=1, column=1)
+LOGoutButton = Button(compnets, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12).place(x=200, y=1)
+
+login_button = ttk.Button(loginframe, text='Login', command=login)
+login_button.grid(row=3, column=2)
 
 # MangerDriverFrame
+#frames for compnets
+managerTVFrameDriver = Frame(MangerDriverFrame)
+managerTVFrameDriver.place(x=100,y=100)
+managerTVFrameDriver.configure(bg='white')
+
+managerInputsFrameDriver = LabelFrame(MangerDriverFrame, text='Inputs', bg='white', pady=5, padx=5)
+managerInputsFrameDriver.place(x=100, y=400)
+managerInputsFrameDriver.configure(bg='white')
+
+managerWidgFrameDriver = LabelFrame(MangerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
+managerWidgFrameDriver.place(x=850, y=500)
+managerWidgFrameDriver.configure(bg='white')
+
+managerPreoformacesrameDriver = LabelFrame(MangerDriverFrame, text='Preformaces', bg='white', pady=5, padx=5)
+managerPreoformacesrameDriver.place(x=850, y=100)
+managerPreoformacesrameDriver.configure(bg='white')
+
 home2 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
 settings2 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
 ring2 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
@@ -589,7 +609,7 @@ photolabelmanagerdriver = Label(labelframe3, image=photomangerdriverscreen, bg='
 photolabelmanagerdriver.grid(row=0, column=0, sticky=N, pady=5)
 
 username_label = Label(labelframe3, text='Welcome, Leo', font=40, fg='white', bg='#0E2B4D')
-username_label.grid(row=0, column=2, padx=342)
+username_label.grid(row=0, column=2, padx=378)
 
 adminMemberClockLabel2 = Label(labelframe3, bg='#0E2B4D', fg='white', font='bold')
 adminMemberClockLabel2.grid(row=0, column=3, padx=10)
@@ -598,9 +618,7 @@ LOGoutButton = Button(labelframe3, command=LogOut, text='Log Out', bg='#0E2B4D',
                                                                                                            column=4,
                                                                                                            ipady=30,
                                                                                                            ipadx=10)
-managerTVFrameDriver = Frame(MangerDriverFrame)
-managerTVFrameDriver.grid(row=1, column=1, sticky=NW, pady=5)
-managerTVFrameDriver.configure(bg='white')
+
 
 SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:').grid(row=0, column=0, padx=10, pady=5)
 search_entryD = ttk.Entry(managerTVFrameDriver, textvariable=MangerTVSerVal, width=90).grid(row=0, column=1)
@@ -634,9 +652,6 @@ def do_popup_staff(event):
 
 managerTVDriver.bind("<Button-3>", do_popup_staff)
 
-managerInputsFrameDriver = LabelFrame(MangerDriverFrame, text='Inputs', bg='white', pady=5, padx=5)
-managerInputsFrameDriver.grid(row=2, column=1, sticky=NW, padx=1)
-managerInputsFrameDriver.configure(bg='white')
 
 FirstNameLabelD = ttk.Label(managerInputsFrameDriver, text='First Name:').grid(row=0, column=0, padx=10)
 FirstNameentryD = ttk.Entry(managerInputsFrameDriver, textvariable=FirstNameD).grid(row=0, column=1)
@@ -660,9 +675,7 @@ EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', comm
                                                                                                                  pady=10)
 
 # widgits on mangerdriverframe
-managerWidgFrameDriver = LabelFrame(MangerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
-managerWidgFrameDriver.grid(row=2, column=2, padx=10, sticky=NW, columnspan=3, ipadx=20, ipady=5)
-managerWidgFrameDriver.configure(bg='white')
+
 
 AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: ', font=60).grid(row=0,
                                                                                                          column=0,
@@ -694,9 +707,7 @@ ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvaria
                                                                                                                  padx=40,
                                                                                                                  pady=10)
 
-managerPreoformacesrameDriver = LabelFrame(MangerDriverFrame, text='Preformaces', bg='white', pady=5, padx=5)
-managerPreoformacesrameDriver.grid(row=1, column=2, padx=10, sticky=NW, columnspan=3)
-managerPreoformacesrameDriver.configure(bg='white')
+
 
 SerTVperformacesLabelD = ttk.Label(managerPreoformacesrameDriver, text='Show:', font=13).grid(row=0, column=0, padx=17)
 
