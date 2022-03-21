@@ -16,6 +16,8 @@ import time
 from time import strftime
 from PIL import Image, ImageTk
 
+# hello
+
 # functions hi part 2
 min_w = 60  # Minimum width of the frame
 max_w = 200  # Maximum width of the frame
