@@ -51,16 +51,13 @@ def fill():
     if expanded:  # If the frame is exanded
         # Show a text, and remove the image
         home_b.config(text='Home', image='', font=(0, 21), fg='white')
-        set_b.config(text='Drivers', image='', font=(0, 21), fg='white')
+        set_b.config(text='Users', image='', font=(0, 21), fg='white')
         ring_b.config(text='Dashbaord', image='', font=(0, 21), fg='white')
     else:
         # Bring the image back
         home_b.config(image=home, font=(0, 21))
         set_b.config(image=settings, font=(0, 21))
         ring_b.config(image=ring, font=(0, 21))
-
-
-
 
 
 def LogOut():
@@ -76,11 +73,9 @@ def timememberscreen():
     timemember()
 
 
-
-
 def raise_frame(frame_name):
     frame_name.tkraise()
-    #"frame" (the side navagation board) must be raised after desired frame, as to keep it in front
+    # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
     frame.tkraise()
 
 
@@ -108,6 +103,14 @@ def ManagerDriver():
     root.geometry('1400x800')
 
 
+def ManagerLoader():
+    raise_frame(ManagerLoaderFrame)
+
+
+def ManagerClient():
+    pass
+
+
 def usernameandpass():
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
@@ -118,11 +121,13 @@ def usernameandpass():
 
     conn.commit()
     print('done')
-    
+
+
 def MangerLogin():
     timememberscreen()
     raise_frame(managermenuframe)
     root.geometry('1400x800')
+
 
 def login():
     Finialusername = username.get()
@@ -373,6 +378,26 @@ def EmailDriverWarningSel():
     pass
 
 
+class UserButtons():
+    def __init__(self):
+        self.userButtonsFrame = None
+
+    def CreateButtons(self, root):
+        self.userButtonsFrame = Frame(root)
+        self.userButtonsFrame.place(x=450, y=10)
+        self.userButtonsFrame.configure(bg='white')
+
+        userDriverButton = Button(self.userButtonsFrame, text='Driver', command=ManagerDriver)
+        userDriverButton.grid(row=0, column=0, ipadx=15, ipady=5)
+
+        userLoaderButton = Button(self.userButtonsFrame, text='Loader', command=ManagerLoader)
+        userLoaderButton.grid(row=0, column=2, ipadx=15, ipady=5)
+
+        userClientButton = Button(self.userButtonsFrame, text='Client', command=ManagerDriver)
+        userClientButton.grid(row=0, column=3, ipadx=15, ipady=5)
+
+
+
 root = ThemedTk(theme='yaru')
 root.geometry('800x600')
 root.title('Logistyics App')
@@ -444,6 +469,7 @@ login_button.grid(row=3, column=2)
 forgot_password_button = ttk.Button(loginframe, text='Reset password', command=forgot_password)
 forgot_password_button.grid(row=3, column=3, pady=10)
 
+# ============================================================================================
 # resetpasswordframe
 photologinforgotscreen = PhotoImage(file='Hannon-Transport.png')
 photolabel2 = Label(resetpasswordframe, image=photologinforgotscreen, bg='white')
@@ -470,6 +496,7 @@ login_button2.grid(row=4, column=3)
 forgot_password_button = ttk.Button(resetpasswordframe, text='Back', command=BackLogin)
 forgot_password_button.grid(row=4, column=2, pady=10)
 
+# ======================================================================================
 # managermenuframe frame
 managerDashFrame = Frame(managermenuframe, bg='white')
 managerDashFrame.place(x=60, y=90, width=1300, height=1000)
@@ -477,8 +504,6 @@ managerDashFrame.place(x=60, y=90, width=1300, height=1000)
 managerWidgFrameDriverDash = LabelFrame(managerDashFrame, text='Inputs', bg='white', pady=5, padx=5)
 managerWidgFrameDriverDash.place(x=20, y=20)
 managerWidgFrameDriverDash.configure(bg='white')
-
-
 
 labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
 labelframe2.grid(row=0, column=0, columnspan=3, sticky=NW)
@@ -493,12 +518,11 @@ username_label.grid(row=0, column=2, padx=370)
 adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
 adminMemberClockLabel.grid(row=0, column=4, padx=10)
 
-
 LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
 LOGoutButton.grid(row=0, column=5, ipady=30, ipadx=10)
 
+# ======================================================================================
 # drivers dashboard
-
 # labels
 AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, text='Available Drivers: ', font=60)
 AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
@@ -517,15 +541,20 @@ NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
 
 ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, textvariable=LableValueNew, font=60)
 ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
-# ManagerDriverFrame
 
+# ==================================================================================
+# ManagerDriverFrame
 ManagerDriverFrame = Frame(managermenuframe, bg='white')
 ManagerDriverFrame.place(x=60, y=90, width=1300, height=1000)
 
 # frames for compnets
 managerTVFrameDriver = Frame(ManagerDriverFrame)
-managerTVFrameDriver.place(x=10, y=20)
+managerTVFrameDriver.place(x=10, y=60)
 managerTVFrameDriver.configure(bg='white')
+
+# userButtonsFrame = Frame(ManagerDriverFrame)
+# userButtonsFrame.place(x=450, y=10)
+# userButtonsFrame.configure(bg='white')
 
 managerInputsFrameDriver = LabelFrame(ManagerDriverFrame, text='Inputs', bg='white', pady=5, padx=5)
 managerInputsFrameDriver.place(x=10, y=447)
@@ -537,9 +566,12 @@ managerWidgFrameDriver.configure(bg='white')
 
 managerPreoformacesrameDriver: LabelFrame = LabelFrame(ManagerDriverFrame, text='Preformaces', bg='white', pady=5,
                                                        padx=5)
-managerPreoformacesrameDriver.place(x=750, y=20)
+managerPreoformacesrameDriver.place(x=750, y=60)
 managerPreoformacesrameDriver.configure(bg='white')
 
+# user buttons driver
+ManagerUserButtons = UserButtons()
+ManagerUserButtons.CreateButtons(ManagerDriverFrame)
 
 SerachlabelD = ttk.Label(managerTVFrameDriver, text='Search:')
 SerachlabelD.grid(row=0, column=0, padx=10, pady=5)
@@ -602,8 +634,6 @@ EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', comm
 EmailDriverButton.grid(row=1, column=4, padx=10, pady=10)
 
 # widgits on ManagerDriverFrame
-
-
 AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: ', font=60)
 AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
 
@@ -661,6 +691,16 @@ EmailDriverPrefromaceSelButton = ttk.Button(managerPreoformacesrameDriver, text=
                                             command=EmailDriverWarningSel)
 EmailDriverPrefromaceSelButton.grid(row=3, column=2, padx=10, pady=5)
 
+
+# ===================================================================================
+# managerLoaderFrame
+ManagerLoaderFrame = Frame(managermenuframe, bg='white')
+ManagerLoaderFrame.place(x=60, y=90, width=1300, height=1000)
+
+LoaderUserButtons = UserButtons()
+LoaderUserButtons.CreateButtons(ManagerLoaderFrame)
+
+# side menu
 home = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
 settings = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
 ring = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
@@ -685,7 +725,6 @@ frame.bind('<Leave>', lambda e: contract())
 
 # So that it does not depend on the widgets inside the frame
 frame.grid_propagate(False)
-
 
 raise_frame(loginframe)
 root.mainloop()
