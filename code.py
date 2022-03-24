@@ -105,10 +105,12 @@ def ManagerDriver():
 
 def ManagerLoader():
     raise_frame(ManagerLoaderFrame)
+    ShowLoaderTV()
 
 
 def ManagerClient():
     raise_frame(ManagerClientFrame)
+    ShowClientTV()
 
 
 def usernameandpass():
@@ -118,7 +120,6 @@ def usernameandpass():
     sql = "INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)"
     val = ("leo", "leo", "customs")
     mycursor.execute(sql, val)
-
 
     conn.commit()
     conn.close()
@@ -268,7 +269,7 @@ def AddDriver():
     sql = "INSERT INTO drivers (email, firstname, lastname, deliveries, avaliablity) VALUES (?, ?, ?, ?, ?)"
     val = (Femail, Ffirstname, Flastname, 0, "Yes")
     mycursor.execute(sql, val)
-    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, type, password))
+    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
     conn.commit()
     conn.close()
 
@@ -304,12 +305,8 @@ def AddDriver():
 def DelDriver():
     curItem = managerTVDriver.focus()
     dictionary = managerTVDriver.item(curItem)
-    print(curItem)
-    print(dictionary)
     listvalues = list(dictionary.values())
-    print(listvalues)
     TheEmail = listvalues[0]
-    print(TheEmail)
     conn = sqlite3.connect('data.db')
     Response = messagebox.askyesno('Are you sure', 'Are you sure you want to delete this user ')
     if Response:
@@ -375,7 +372,6 @@ def UpdateDriverMangerWidg():
     conn.commit()
     conn.close()
 
-
     AmountNew = 0
     conn = sqlite3.connect('data.db')
     c = conn.cursor()
@@ -409,12 +405,11 @@ def AddLoader():
     mycursor = conn.cursor()
 
     sql = "INSERT INTO loaders (email, firstname, lastname) VALUES (?, ?, ?)"
-    val = (Femail, Ffirstname, Flastname, 0, "Yes")
+    val = (Femail, Ffirstname, Flastname)
     mycursor.execute(sql, val)
-    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, type, password))
+    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
     conn.commit()
     conn.close()
-
 
     subject = 'New Hannon Account'
     msg = MIMEMultipart()
@@ -440,6 +435,117 @@ def AddLoader():
 
     except:
         print('Email not sent')
+
+    ShowLoaderTV()
+
+
+def DelLoader():
+    curItem = managerTVLoader.focus()
+    dictionary = managerTVLoader.item(curItem)
+    print(curItem)
+    print(dictionary)
+    listvalues = list(dictionary.values())
+    print(listvalues)
+    TheEmail = listvalues[0]
+    print(TheEmail)
+    conn = sqlite3.connect('data.db')
+    Response = messagebox.askyesno('Are you sure', 'Are you sure you want to delete this user ')
+    if Response:
+        c = conn.cursor()
+        c.execute("DELETE from loaders WHERE email = (?)", (TheEmail,))
+        c.execute("DELETE from passwords WHERE username = (?)", (TheEmail,))
+        conn.commit()
+        conn.close()
+        ShowLoaderTV()
+    elif Response == 'No':
+        Response.destroy()
+    ShowLoaderTV()
+
+
+def ShowLoaderTV():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    managerTVLoader.delete(*managerTVLoader.get_children())
+    c.execute("SELECT * FROM loaders")
+    for row in c:
+        managerTVLoader.insert('', 'end', text=row[0], values=row[1:3])
+    print(c)
+    conn.commit()
+    conn.close()
+
+
+def AddClient():
+    type = 'client'
+    password = 'NotSet'
+    Ffirstname = FirstNameC.get()
+    Flastname = LastNameC.get()
+    Femail = EmailC.get()
+    conn = sqlite3.connect('data.db')
+    mycursor = conn.cursor()
+
+    sql = "INSERT INTO clients (email, firstname, lastname) VALUES (?, ?, ?)"
+    val = (Femail, Ffirstname, Flastname)
+    mycursor.execute(sql, val)
+    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
+    conn.commit()
+    conn.close()
+
+    subject = 'New Hannon Account'
+    msg = MIMEMultipart()
+    msg['From'] = config.emailAddress
+    msg['To'] = Femail
+    msg['Subject'] = subject
+    body = 'Welcome to hannon computer system. To set password click "reset password"'
+    msg.attach(MIMEText(body, 'plain'))
+
+    part = MIMEBase('application', 'octet-stream')
+    text = msg.as_string()
+    try:
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(config.emailAddress, config.password)
+        server.sendmail(config.emailAddress, Femail, text)
+        server.quit()
+        print('email sent')
+        messagebox.showinfo('Info', 'Added ')
+
+    except:
+        print('Email not sent')
+
+    ShowClientTV()
+
+
+def DelClient():
+    print('hello')
+    ClientcurItem = managerTVClient.focus()
+    dictionaryClient = managerTVClient.item(ClientcurItem)
+    CLientlistvalues = list(dictionaryClient.values())
+    ClientTheEmail = CLientlistvalues[0]
+    conn = sqlite3.connect('data.db')
+    Response = messagebox.askyesno('Are you sure', 'Are you sure you want to delete this user ')
+    if Response:
+        c = conn.cursor()
+        c.execute("DELETE from clients WHERE email = (?)", (ClientTheEmail,))
+        c.execute("DELETE from passwords WHERE username = (?)", (ClientTheEmail,))
+        conn.commit()
+        conn.close()
+        ShowClientTV()
+    elif Response == 'No':
+        Response.destroy()
+    ShowClientTV()
+
+
+def ShowClientTV():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    managerTVClient.delete(*managerTVClient.get_children())
+    c.execute("SELECT * FROM clients")
+    for row in c:
+        managerTVClient.insert('', 'end', text=row[0], values=row[1:3])
+    print(c)
+    conn.commit()
+    conn.close()
 
 
 class UserButtons():
@@ -798,7 +904,7 @@ managerTVLoader.heading('#2', text='Last Name')
 managerTVLoader.column('#2', minwidth=0, width=130, anchor='center')
 
 popupmenustaffLoader = Menu(managerTVFrameLoader, tearoff=0)
-popupmenustaffLoader.add_command(label='Delete', command=DelDriver)
+popupmenustaffLoader.add_command(label='Delete', command=DelLoader)
 popupmenustaffLoader.add_command(label='Send Email', command=EmailDriver)
 
 
@@ -830,7 +936,7 @@ EmailentryL.grid(row=0, column=5)
 AddLoaderButton = ttk.Button(managerInputsFrameLoader, text='Add Loader', command=AddLoader)
 AddLoaderButton.grid(row=1, column=0, padx=10, pady=10)
 
-DelLoaderButton = ttk.Button(managerInputsFrameLoader, text='Delete Loader', command=DelDriver)
+DelLoaderButton = ttk.Button(managerInputsFrameLoader, text='Delete Loader', command=DelLoader)
 DelLoaderButton.grid(row=1, column=2, padx=10, pady=10)
 
 EmailLoaderButton = ttk.Button(managerInputsFrameLoader, text='Send Email', command=UpdateDriverMangerWidg)
@@ -876,7 +982,7 @@ managerTVClient.heading('#2', text='Last Name')
 managerTVClient.column('#2', minwidth=0, width=130, anchor='center')
 
 popupmenustaffClient = Menu(managerTVFrameClient, tearoff=0)
-popupmenustaffClient.add_command(label='Delete', command=DelDriver)
+popupmenustaffClient.add_command(label='Delete', command=DelClient)
 popupmenustaffClient.add_command(label='Send Email', command=EmailDriver)
 
 
@@ -906,10 +1012,10 @@ EmailLabelC.grid(row=0, column=4, padx=10)
 EmailentryC = ttk.Entry(managerInputsFrameClient, textvariable=EmailC)
 EmailentryC.grid(row=0, column=5)
 
-AddClientButton = ttk.Button(managerInputsFrameClient, text='Add Client', command=AddDriver)
+AddClientButton = ttk.Button(managerInputsFrameClient, text='Add Client', command=AddClient)
 AddClientButton.grid(row=1, column=0, padx=10, pady=10)
 
-DelClientButton = ttk.Button(managerInputsFrameClient, text='Delete Client', command=DelDriver)
+DelClientButton = ttk.Button(managerInputsFrameClient, text='Delete Client', command=DelClient)
 DelClientButton.grid(row=1, column=2, padx=10, pady=10)
 
 EmailClientButton = ttk.Button(managerInputsFrameClient, text='Send Email', command=UpdateDriverMangerWidg)
@@ -926,7 +1032,7 @@ managerTVClientOrder.heading('#1', text='Orders')
 managerTVClientOrder.column('#1', minwidth=0, width=110, anchor='center')
 
 popupmenustaffClientOrders = Menu(managerTVFrameClientOrders, tearoff=0)
-popupmenustaffClientOrders.add_command(label='Delete', command=DelDriver)
+popupmenustaffClientOrders.add_command(label='Delete', command=DelClient)
 popupmenustaffClientOrders.add_command(label='Send Email', command=EmailDriver)
 
 
