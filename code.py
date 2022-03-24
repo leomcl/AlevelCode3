@@ -108,7 +108,7 @@ def ManagerLoader():
 
 
 def ManagerClient():
-    pass
+    raise_frame(ManagerClientFrame)
 
 
 def usernameandpass():
@@ -119,7 +119,9 @@ def usernameandpass():
     val = ("leo", "leo", "customs")
     mycursor.execute(sql, val)
 
+
     conn.commit()
+    conn.close()
     print('done')
 
 
@@ -137,6 +139,8 @@ def login():
     c = conn.cursor()
     c.execute("SELECT rowid, * from passwords WHERE username = (?)", (Finialusername,))
     reader = c.fetchall()
+    conn.commit()
+    conn.close()
     print(reader)
     for row in reader:
         if row[2] == Finialpassword and row[3] == 'driver':
@@ -178,6 +182,8 @@ def forgot_password():
     c = conn.cursor()
     c.execute("SELECT rowid, * from passwords WHERE username = (?)", (email,))
     reader = c.fetchall()
+    conn.commit()
+    conn.close()
     print(reader)
 
     for row in reader:
@@ -246,6 +252,8 @@ def ShowDriverTV():
     for row in c:
         managerTVDriver.insert('', 'end', text=row[0], values=row[1:5])
     print(c)
+    conn.commit()
+    conn.close()
 
 
 def AddDriver():
@@ -262,6 +270,7 @@ def AddDriver():
     mycursor.execute(sql, val)
     mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, type, password))
     conn.commit()
+    conn.close()
 
     subject = 'New Hannon Account'
     msg = MIMEMultipart()
@@ -327,9 +336,12 @@ def ShowDriverPreformaceTV():
         c = conn.cursor()
         managerDriverPrefTVDriver.delete(*managerDriverPrefTVDriver.get_children())
         c.execute("SELECT * FROM driverPreformace")
+        conn.commit()
+        conn.close()
         for row in c:
             managerDriverPrefTVDriver.insert('', 'end', text=row[0], values=row[1:3])
         print(c)
+
     elif FinialSerTV == 'New Lates':
         conn = sqlite3.connect('data.db')
         c = conn.cursor()
@@ -338,6 +350,8 @@ def ShowDriverPreformaceTV():
         for row in c:
             managerDriverPrefTVDriver.insert('', 'end', text=row[0], values=row[1:3])
         print(c)
+        conn.commit()
+        conn.close()
 
 
 def UpdateDriverMangerWidg():
@@ -348,6 +362,8 @@ def UpdateDriverMangerWidg():
     for row in c:
         AmountNo += 1
     LableValueNo.set(AmountNo)
+    conn.commit()
+    conn.close()
 
     AmountYes = 0
     conn = sqlite3.connect('data.db')
@@ -356,6 +372,9 @@ def UpdateDriverMangerWidg():
     for row in c:
         AmountYes += 1
     LableValueYes.set(AmountYes)
+    conn.commit()
+    conn.close()
+
 
     AmountNew = 0
     conn = sqlite3.connect('data.db')
@@ -364,6 +383,8 @@ def UpdateDriverMangerWidg():
     for row in c:
         AmountNew += 1
     LableValueNew.set(AmountNew)
+    conn.commit()
+    conn.close()
 
 
 def EmailDriverWarningAll():
@@ -376,6 +397,49 @@ def EmailDriverWarningNew():
 
 def EmailDriverWarningSel():
     pass
+
+
+def AddLoader():
+    type = 'loader'
+    password = 'NotSet'
+    Ffirstname = FirstNameL.get()
+    Flastname = LastNameL.get()
+    Femail = EmailL.get()
+    conn = sqlite3.connect('data.db')
+    mycursor = conn.cursor()
+
+    sql = "INSERT INTO loaders (email, firstname, lastname) VALUES (?, ?, ?)"
+    val = (Femail, Ffirstname, Flastname, 0, "Yes")
+    mycursor.execute(sql, val)
+    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, type, password))
+    conn.commit()
+    conn.close()
+
+
+    subject = 'New Hannon Account'
+    msg = MIMEMultipart()
+    msg['From'] = config.emailAddress
+    msg['To'] = Femail
+    msg['Subject'] = subject
+    body = 'Welcome to hannon computer system. To set password click "reset password"'
+    msg.attach(MIMEText(body, 'plain'))
+
+    part = MIMEBase('application', 'octet-stream')
+    text = msg.as_string()
+    try:
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(config.emailAddress, config.password)
+        server.sendmail(config.emailAddress, Femail, text)
+        server.quit()
+        print('email sent')
+        messagebox.showinfo('Info', 'Added ')
+        raise_frame(resetpasswordframe)
+        resetpasswordframe.geometry('500x500')
+
+    except:
+        print('Email not sent')
 
 
 class UserButtons():
@@ -393,9 +457,8 @@ class UserButtons():
         userLoaderButton = Button(self.userButtonsFrame, text='Loader', command=ManagerLoader)
         userLoaderButton.grid(row=0, column=2, ipadx=15, ipady=5)
 
-        userClientButton = Button(self.userButtonsFrame, text='Client', command=ManagerDriver)
+        userClientButton = Button(self.userButtonsFrame, text='Client', command=ManagerClient)
         userClientButton.grid(row=0, column=3, ipadx=15, ipady=5)
-
 
 
 root = ThemedTk(theme='yaru')
@@ -423,6 +486,18 @@ UsernmaeLabel = ''
 REpassword1 = StringVar()
 REpassword2 = StringVar()
 OTPcode = StringVar()
+
+# loader user
+MangerTVSerValLoader = StringVar()
+FirstNameL = StringVar()
+LastNameL = StringVar()
+EmailL = StringVar()
+
+# client user
+MangerTVSerValClient = StringVar()
+FirstNameC = StringVar()
+LastNameC = StringVar()
+EmailC = StringVar()
 
 # frames
 loginframe = Frame(root, bg='white')
@@ -501,7 +576,7 @@ forgot_password_button.grid(row=4, column=2, pady=10)
 managerDashFrame = Frame(managermenuframe, bg='white')
 managerDashFrame.place(x=60, y=90, width=1300, height=1000)
 
-managerWidgFrameDriverDash = LabelFrame(managerDashFrame, text='Inputs', bg='white', pady=5, padx=5)
+managerWidgFrameDriverDash = LabelFrame(managerDashFrame, bg='white', pady=5, padx=5)
 managerWidgFrameDriverDash.place(x=20, y=20)
 managerWidgFrameDriverDash.configure(bg='white')
 
@@ -544,28 +619,23 @@ ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
 
 # ==================================================================================
 # ManagerDriverFrame
+# frames for ManagerDriverFrame
 ManagerDriverFrame = Frame(managermenuframe, bg='white')
 ManagerDriverFrame.place(x=60, y=90, width=1300, height=1000)
 
-# frames for compnets
-managerTVFrameDriver = Frame(ManagerDriverFrame)
+managerTVFrameDriver = LabelFrame(ManagerDriverFrame)
 managerTVFrameDriver.place(x=10, y=60)
 managerTVFrameDriver.configure(bg='white')
 
-# userButtonsFrame = Frame(ManagerDriverFrame)
-# userButtonsFrame.place(x=450, y=10)
-# userButtonsFrame.configure(bg='white')
-
-managerInputsFrameDriver = LabelFrame(ManagerDriverFrame, text='Inputs', bg='white', pady=5, padx=5)
+managerInputsFrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
 managerInputsFrameDriver.place(x=10, y=447)
 managerInputsFrameDriver.configure(bg='white')
 
-managerWidgFrameDriver = LabelFrame(ManagerDriverFrame, text='Widgets', bg='white', pady=5, padx=5)
+managerWidgFrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
 managerWidgFrameDriver.place(x=750, y=420)
 managerWidgFrameDriver.configure(bg='white')
 
-managerPreoformacesrameDriver: LabelFrame = LabelFrame(ManagerDriverFrame, text='Preformaces', bg='white', pady=5,
-                                                       padx=5)
+managerPreoformacesrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
 managerPreoformacesrameDriver.place(x=750, y=60)
 managerPreoformacesrameDriver.configure(bg='white')
 
@@ -691,15 +761,185 @@ EmailDriverPrefromaceSelButton = ttk.Button(managerPreoformacesrameDriver, text=
                                             command=EmailDriverWarningSel)
 EmailDriverPrefromaceSelButton.grid(row=3, column=2, padx=10, pady=5)
 
-
 # ===================================================================================
 # managerLoaderFrame
+# frames in manager loader frame
 ManagerLoaderFrame = Frame(managermenuframe, bg='white')
 ManagerLoaderFrame.place(x=60, y=90, width=1300, height=1000)
 
+managerTVFrameLoader = LabelFrame(ManagerLoaderFrame)
+managerTVFrameLoader.place(x=10, y=60)
+managerTVFrameLoader.configure(bg='white')
+
+managerInputsFrameLoader = LabelFrame(ManagerLoaderFrame, bg='white', pady=5, padx=5)
+managerInputsFrameLoader.place(x=10, y=447)
+managerInputsFrameLoader.configure(bg='white')
+
+# user buttons in OOP
 LoaderUserButtons = UserButtons()
 LoaderUserButtons.CreateButtons(ManagerLoaderFrame)
 
+# loader TV
+SerachlabelL = ttk.Label(managerTVFrameLoader, text='Search:')
+SerachlabelL.grid(row=0, column=0, padx=10, pady=5)
+
+search_entryL = ttk.Entry(managerTVFrameLoader, textvariable=MangerTVSerValLoader, width=90)
+search_entryL.grid(row=0, column=1)
+
+managerTVLoader = ttk.Treeview(managerTVFrameLoader, height=10,
+                               columns=('First Name', 'Last Name'))
+managerTVLoader.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+managerTVLoader.heading('#0', text='Email')
+managerTVLoader.column('#0', minwidth=0, width=200, anchor='center')
+managerTVLoader.heading('#1', text='First Name')
+managerTVLoader.column('#1', minwidth=0, width=110, anchor='center')
+managerTVLoader.heading('#2', text='Last Name')
+managerTVLoader.column('#2', minwidth=0, width=130, anchor='center')
+
+popupmenustaffLoader = Menu(managerTVFrameLoader, tearoff=0)
+popupmenustaffLoader.add_command(label='Delete', command=DelDriver)
+popupmenustaffLoader.add_command(label='Send Email', command=EmailDriver)
+
+
+def do_popup_Loader(event):
+    try:
+        popupmenustaffLoader.tk_popup(event.x_root, event.y_root)
+    finally:
+        popupmenustaffLoader.grab_release()
+
+
+managerTVLoader.bind("<Button-3>", do_popup_Loader)
+
+FirstNameLabelL = ttk.Label(managerInputsFrameLoader, text='First Name:')
+FirstNameLabelL.grid(row=0, column=0, padx=10)
+
+FirstNameentryL = ttk.Entry(managerInputsFrameLoader, textvariable=FirstNameL)
+FirstNameentryL.grid(row=0, column=1)
+
+LastNameLabelL = ttk.Label(managerInputsFrameLoader, text='Last Name:')
+LastNameLabelL.grid(row=0, column=2, padx=10)
+LastNameentryL = ttk.Entry(managerInputsFrameLoader, textvariable=LastNameL)
+LastNameentryL.grid(row=0, column=3)
+
+EmailLabelL = ttk.Label(managerInputsFrameLoader, text='Email:')
+EmailLabelL.grid(row=0, column=4, padx=10)
+EmailentryL = ttk.Entry(managerInputsFrameLoader, textvariable=EmailL)
+EmailentryL.grid(row=0, column=5)
+
+AddLoaderButton = ttk.Button(managerInputsFrameLoader, text='Add Loader', command=AddLoader)
+AddLoaderButton.grid(row=1, column=0, padx=10, pady=10)
+
+DelLoaderButton = ttk.Button(managerInputsFrameLoader, text='Delete Loader', command=DelDriver)
+DelLoaderButton.grid(row=1, column=2, padx=10, pady=10)
+
+EmailLoaderButton = ttk.Button(managerInputsFrameLoader, text='Send Email', command=UpdateDriverMangerWidg)
+EmailLoaderButton.grid(row=1, column=4, padx=10, pady=10)
+# ===================================================================================
+# managerClientFrame
+# frames in manager client frame
+ManagerClientFrame = Frame(managermenuframe, bg='white')
+ManagerClientFrame.place(x=60, y=90, width=1300, height=1000)
+
+managerTVFrameClient = LabelFrame(ManagerClientFrame)
+managerTVFrameClient.place(x=10, y=60)
+managerTVFrameClient.configure(bg='white')
+
+managerInputsFrameClient = LabelFrame(ManagerClientFrame, bg='white', pady=5, padx=5)
+managerInputsFrameClient.place(x=10, y=447)
+managerInputsFrameClient.configure(bg='white')
+
+managerTVFrameClientOrders = LabelFrame(ManagerClientFrame)
+managerTVFrameClientOrders.place(x=750, y=60)
+managerTVFrameClientOrders.configure(bg='white')
+
+# user buttons in OOP
+ClientUserButtons = UserButtons()
+ClientUserButtons.CreateButtons(ManagerClientFrame)
+
+# Client TV
+SerachlabelC = ttk.Label(managerTVFrameClient, text='Search:')
+SerachlabelC.grid(row=0, column=0, padx=10, pady=5)
+
+search_entryD = ttk.Entry(managerTVFrameClient, textvariable=MangerTVSerValClient, width=90)
+search_entryD.grid(row=0, column=1)
+
+managerTVClient = ttk.Treeview(managerTVFrameClient, height=10,
+                               columns=('First Name', 'Last Name'))
+managerTVClient.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+managerTVClient.heading('#0', text='Email')
+managerTVClient.column('#0', minwidth=0, width=200, anchor='center')
+managerTVClient.heading('#1', text='First Name')
+managerTVClient.column('#1', minwidth=0, width=110, anchor='center')
+managerTVClient.heading('#2', text='Last Name')
+managerTVClient.column('#2', minwidth=0, width=130, anchor='center')
+
+popupmenustaffClient = Menu(managerTVFrameClient, tearoff=0)
+popupmenustaffClient.add_command(label='Delete', command=DelDriver)
+popupmenustaffClient.add_command(label='Send Email', command=EmailDriver)
+
+
+def do_popup_Client(event):
+    try:
+        popupmenustaffClient.tk_popup(event.x_root, event.y_root)
+    finally:
+        popupmenustaffClient.grab_release()
+
+
+managerTVClient.bind("<Button-3>", do_popup_Client)
+
+# inputs client
+FirstNameLabelC = ttk.Label(managerInputsFrameClient, text='First Name:')
+FirstNameLabelC.grid(row=0, column=0, padx=10)
+
+FirstNameentryC = ttk.Entry(managerInputsFrameClient, textvariable=FirstNameC)
+FirstNameentryC.grid(row=0, column=1)
+
+LastNameLabelC = ttk.Label(managerInputsFrameClient, text='Last Name:')
+LastNameLabelC.grid(row=0, column=2, padx=10)
+LastNameentryC = ttk.Entry(managerInputsFrameClient, textvariable=LastNameC)
+LastNameentryC.grid(row=0, column=3)
+
+EmailLabelC = ttk.Label(managerInputsFrameClient, text='Email:')
+EmailLabelC.grid(row=0, column=4, padx=10)
+EmailentryC = ttk.Entry(managerInputsFrameClient, textvariable=EmailC)
+EmailentryC.grid(row=0, column=5)
+
+AddClientButton = ttk.Button(managerInputsFrameClient, text='Add Client', command=AddDriver)
+AddClientButton.grid(row=1, column=0, padx=10, pady=10)
+
+DelClientButton = ttk.Button(managerInputsFrameClient, text='Delete Client', command=DelDriver)
+DelClientButton.grid(row=1, column=2, padx=10, pady=10)
+
+EmailClientButton = ttk.Button(managerInputsFrameClient, text='Send Email', command=UpdateDriverMangerWidg)
+EmailClientButton.grid(row=1, column=4, padx=10, pady=10)
+
+# order TV
+managerTVClientOrder = ttk.Treeview(managerTVFrameClientOrders, height=10,
+                                    columns='Orders')
+managerTVClientOrder.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+managerTVClientOrder.heading('#0', text='Email')
+managerTVClientOrder.column('#0', minwidth=0, width=200, anchor='center')
+managerTVClientOrder.heading('#1', text='Orders')
+managerTVClientOrder.column('#1', minwidth=0, width=110, anchor='center')
+
+popupmenustaffClientOrders = Menu(managerTVFrameClientOrders, tearoff=0)
+popupmenustaffClientOrders.add_command(label='Delete', command=DelDriver)
+popupmenustaffClientOrders.add_command(label='Send Email', command=EmailDriver)
+
+
+def do_popup_Client_order(event):
+    try:
+        popupmenustaffClientOrders.tk_popup(event.x_root, event.y_root)
+    finally:
+        popupmenustaffClientOrders.grab_release()
+
+
+managerTVClient.bind("<Button-3>", do_popup_Client_order)
+
+# ==========================================================================================================
 # side menu
 home = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
 settings = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
