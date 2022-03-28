@@ -60,6 +60,41 @@ def fill():
         ring_b.config(image=ring, font=(0, 21))
 
 
+def expand2():
+    global cur_width, expanded
+    cur_width += 100  # Increase the width by 10
+    rep = root.after(5, expand2)  # Repeat this func every 5 ms
+    frame2.config(width=cur_width)  # Change the width to new increase width
+    if cur_width >= max_w:  # If width is greater than maximum width
+        expanded = True  # Frame is expended
+        root.after_cancel(rep)  # Stop repeating the func
+        fill2()
+
+
+def contract2():
+    global cur_width, expanded
+    cur_width -= 100  # Reduce the width by 10
+    rep = root.after(5, contract2)  # Call this func every 5 ms
+    frame2.config(width=cur_width)  # Change the width to new reduced width
+    if cur_width <= min_w:  # If it is back to normal width
+        expanded = False  # Frame is not expanded
+        root.after_cancel(rep)  # Stop repeating the func
+        fill2()
+
+
+def fill2():
+    if expanded:  # If the frame is exanded
+        # Show a text, and remove the image
+        home_b2.config(text='Home', image='', font=(0, 21), fg='white')
+        set_b2.config(text='Users', image='', font=(0, 21), fg='white')
+        ring_b2.config(text='Orders', image='', font=(0, 21), fg='white')
+    else:
+        # Bring the image back
+        home_b2.config(image=home, font=(0, 21))
+        set_b2.config(image=settings, font=(0, 21))
+        ring_b2.config(image=ring, font=(0, 21))
+
+
 def LogOut():
     raise_frame(loginframe)
 
@@ -73,10 +108,25 @@ def timememberscreen():
     timemember()
 
 
+def timedriverscreen():
+    def timedriver():
+        string = strftime('%H:%M:%S %p')
+        driverMemberClockLabel.config(text=string)
+        driverMemberClockLabel.after(1000, timedriverscreen())
+
+    timedriver()
+
+
 def raise_frame(frame_name):
     frame_name.tkraise()
     # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
     frame.tkraise()
+
+
+def raise_frameDriver(frame_name):
+    frame_name.tkraise()
+    # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
+    frame2.tkraise()
 
 
 def BackLogin():
@@ -92,6 +142,13 @@ def Button1():
 def MangerMenu():
     timememberscreen()
     raise_frame(managerDashFrame)
+    root.geometry('1400x800')
+
+
+def DriverMenu():
+    # timedriverscreen()
+    ShowdriverOrderTv()
+    raise_frame(drivermenuframe)
     root.geometry('1400x800')
 
 
@@ -136,6 +193,7 @@ def MangerLogin():
 
 
 def login():
+    global Finialusername
     Finialusername = username.get()
     Finialpassword = Password.get()
     print(Finialpassword, Finialusername)
@@ -148,7 +206,7 @@ def login():
     print(reader)
     for row in reader:
         if row[2] == Finialpassword and row[3] == 'driver':
-            MangerMenu()
+            DriverMenu()
             print('driver')
         elif row[2] == Finialpassword and row[3] == 'client':
             MangerMenu()
@@ -612,6 +670,18 @@ def ShowOrderTV():
         conn.close()
 
 
+def ShowdriverOrderTv():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    driverTVOrders.delete(*driverTVOrders.get_children())
+    c.execute("SELECT * FROM orders WHERE driverID = (?)", (Finialusername,))
+    for row in c:
+        driverTVOrders.insert('', 'end', text=row[0], values=row[1:6])
+    print(c)
+    conn.commit()
+    conn.close()
+
+
 def Assign():
     # get order
     ClientcurItem = managerTVOrders.focus()
@@ -784,10 +854,11 @@ managermenuframe = Frame(root, bg='white')
 ManagerDriverFrameDash = Frame(root, bg='white')
 ManagerStaffFrame = Frame(root, bg='light grey')
 ManagerClassesFrame = Frame(root, bg='light grey')
+drivermenuframe = Frame(root, bg='light grey')
 
 for frame in (
         loginframe, create_account_frame, resetpasswordframe, membermenuframe, managermenuframe,
-        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash):
+        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash, drivermenuframe):
     frame.grid(row=0, column=0, sticky='news')
 
 # styles
@@ -854,22 +925,6 @@ managerDashFrame.place(x=60, y=90, width=1300, height=1000)
 managerWidgFrameDriverDash = LabelFrame(managerDashFrame, bg='white', pady=5, padx=5)
 managerWidgFrameDriverDash.place(x=20, y=20)
 managerWidgFrameDriverDash.configure(bg='white')
-
-labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
-labelframe2.grid(row=0, column=0, columnspan=3, sticky=NW)
-
-photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
-photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
-photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
-
-username_label = Label(labelframe2, text='Dashboard          ', font=40, fg='white', bg='#0E2B4D')
-username_label.grid(row=0, column=2, padx=370)
-
-adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
-adminMemberClockLabel.grid(row=0, column=4, padx=10)
-
-LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
-LOGoutButton.grid(row=0, column=5, ipady=30, ipadx=10)
 
 # ======================================================================================
 # drivers dashboard
@@ -1306,7 +1361,62 @@ DelDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Delete Order', comma
 DelDriverButton.grid(row=1, column=2, padx=10, pady=10)
 
 # ==========================================================================================================
-# side menu
+# drivermenuframe
+driverOrdersFrame = Frame(drivermenuframe, bg='white')
+driverOrdersFrame.place(x=60, y=90, width=1300, height=1000)
+
+DriverOrderTVFrame = Frame(driverOrdersFrame, bg='white')
+DriverOrderTVFrame.place(x=10, y=20)
+
+driverTVOrders = ttk.Treeview(DriverOrderTVFrame, height=10,
+                              columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3', '4'))
+driverTVOrders.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+driverTVOrders.heading('#0', text='Order ID')
+driverTVOrders.column('#0', minwidth=0, width=130, anchor='center')
+driverTVOrders.heading('#1', text='Company')
+driverTVOrders.column('#1', minwidth=0, width=130, anchor='center')
+driverTVOrders.heading('#2', text='Pick Up')
+driverTVOrders.column('#2', minwidth=0, width=130, anchor='center')
+driverTVOrders.heading('#3', text='Delivery')
+driverTVOrders.column('#3', minwidth=0, width=130, anchor='center')
+driverTVOrders.heading('#4', text='Product ID')
+driverTVOrders.column('#4', minwidth=0, width=130, anchor='center')
+driverTVOrders.heading('#5', text='Lorrie Reg')
+driverTVOrders.column('#5', minwidth=0, width=130, anchor='center')
+
+popupmenuordersdriver = Menu(DriverOrderTVFrame, tearoff=0)
+popupmenuordersdriver.add_command(label='Status', command=DelDriver)
+
+
+def do_popup_orders_driver(event):
+    try:
+        popupmenuordersdriver.tk_popup(event.x_root, event.y_root)
+    finally:
+        popupmenuordersdriver.grab_release()
+
+
+driverTVOrders.bind("<Button-3>", do_popup_orders_driver)
+
+# ==========================================================================================================
+# top menu manager
+labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
+labelframe2.grid(row=0, column=0, columnspan=3, sticky=NW)
+
+photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
+photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
+photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
+
+username_label = Label(labelframe2, text='Manager              ', font=40, fg='white', bg='#0E2B4D')
+username_label.grid(row=0, column=2, padx=370)
+
+adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
+adminMemberClockLabel.grid(row=0, column=4, padx=10)
+
+LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButton.grid(row=0, column=5, ipady=30, ipadx=10)
+
+# side menu manager
 home = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
 settings = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
 ring = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
@@ -1331,6 +1441,50 @@ frame.bind('<Leave>', lambda e: contract())
 
 # So that it does not depend on the widgets inside the frame
 frame.grid_propagate(False)
+
+# ==========================================================================================================
+# top menu driver
+labelframe3 = Frame(drivermenuframe, bg='#0E2B4D')
+labelframe3.grid(row=0, column=0, columnspan=3, sticky=NW)
+
+photodrivermenuscreen = PhotoImage(file='white-footer-logo.png')
+photolabeldriver = Label(labelframe3, image=photodrivermenuscreen, bg='#0E2B4D')
+photolabeldriver.grid(row=0, column=0, sticky=NW, pady=5)
+
+username_labeldriver = Label(labelframe3, text='Manager              ', font=40, fg='white', bg='#0E2B4D')
+username_labeldriver.grid(row=0, column=2, padx=370)
+
+driverMemberClockLabel = Label(labelframe3, bg='#0E2B4D', fg='white', font='bold')
+driverMemberClockLabel.grid(row=0, column=4, padx=10)
+
+LOGoutButtondriver = Button(labelframe3, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtondriver.grid(row=0, column=5, ipady=30, ipadx=10)
+
+# side menu manager
+home2 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
+settings2 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
+ring2 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
+
+root.update()  # For the width to get updated
+frame2 = Frame(drivermenuframe, bg='#0E2B4D', width=60, height=root.winfo_height())
+frame2.grid(row=1, column=0, sticky=NW, rowspan=4)
+
+# Make the buttons with the icons to be shown
+home_b2 = Button(frame2, image=home, bg='#0E2B4D', command=MangerMenu, relief='flat')
+set_b2 = Button(frame2, image=settings, bg='#0E2B4D', command=ManagerDriver, relief='flat')
+ring_b2 = Button(frame2, image=ring, bg='#0E2B4D', command=MangerOrders, relief='flat')
+
+# Put them on the frame
+home_b2.grid(row=0, column=0, pady=10)
+set_b2.grid(row=1, column=0, pady=50)
+ring_b2.grid(row=2, column=0)
+
+# Bind to the frame, if entered or left
+frame2.bind('<Enter>', lambda e: expand2())
+frame2.bind('<Leave>', lambda e: contract2())
+
+# So that it does not depend on the widgets inside the frame
+frame2.grid_propagate(False)
 
 raise_frame(loginframe)
 root.mainloop()
