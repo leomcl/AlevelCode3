@@ -52,7 +52,7 @@ def fill():
         # Show a text, and remove the image
         home_b.config(text='Home', image='', font=(0, 21), fg='white')
         set_b.config(text='Users', image='', font=(0, 21), fg='white')
-        ring_b.config(text='Dashbaord', image='', font=(0, 21), fg='white')
+        ring_b.config(text='Orders', image='', font=(0, 21), fg='white')
     else:
         # Bring the image back
         home_b.config(image=home, font=(0, 21))
@@ -90,17 +90,22 @@ def Button1():
 
 
 def MangerMenu():
+    UpdateDriverMangerWidg()
     timememberscreen()
+    ShowOrderTV()
     raise_frame(managerDashFrame)
     root.geometry('1400x800')
 
 
 def ManagerDriver():
-    ShowDriverTV()
-    ShowDriverPreformaceTV()
-    UpdateDriverMangerWidg()
+    ShowOrderTV()
     raise_frame(ManagerDriverFrame)
     root.geometry('1400x800')
+
+
+def MangerOrders():
+    raise_frame(ManagerOrderFrame)
+    ShowOrderTV()
 
 
 def ManagerLoader():
@@ -239,7 +244,7 @@ def ResetPassword():
             messagebox.showinfo('Invalid password Error', 'New password must match confirm password')
 
         else:
-            messagebox.showinfo('Invalid Error', 'Error password does not match confrm password try again')
+            messagebox.showinfo('Invalid Error', 'Error password does not match confirm password try again')
             FinialOTPcode.set('')
             FinialNewPassword.set('')
             FinialNewPassword2.set('')
@@ -548,6 +553,41 @@ def ShowClientTV():
     conn.close()
 
 
+def AddOrder():
+    LorrieRed = 'None'
+    Driver = 'None'
+    OrderID = random.randint(1, 1000)
+    FCompany = Company.get()
+    FPickUp = PickUp.get()
+    FDelivery = Delivery.get()
+    FProductID = ProductID.get()
+    conn = sqlite3.connect('data.db')
+    mycursor = conn.cursor()
+
+    sql = "INSERT INTO orders (orderID, company, pickUpAddress, deliveryAddress, productID, lorrieReg, driverID) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    val = (OrderID, FCompany, FPickUp, FDelivery, FProductID, LorrieRed, Driver)
+    mycursor.execute(sql, val)
+
+    conn.commit()
+    conn.close()
+    ShowOrderTV()
+
+def DeleteOrder():
+    pass
+
+
+def ShowOrderTV():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    managerTVOrders.delete(*managerTVOrders.get_children())
+    c.execute("SELECT * FROM orders")
+    for row in c:
+        managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
+    print(c)
+    conn.commit()
+    conn.close()
+
+
 class UserButtons():
     def __init__(self):
         self.userButtonsFrame = None
@@ -572,6 +612,7 @@ root.geometry('800x600')
 root.title('Logistyics App')
 root.configure(background='white')
 
+# ============================================================================
 # variables
 # login
 username = StringVar()
@@ -605,6 +646,14 @@ FirstNameC = StringVar()
 LastNameC = StringVar()
 EmailC = StringVar()
 
+# orders
+SerTVOrders = StringVar()
+Company = StringVar()
+PickUp = StringVar()
+Delivery = StringVar()
+ProductID = StringVar()
+
+# ===========================================================================
 # frames
 loginframe = Frame(root, bg='white')
 create_account_frame = Frame(root, bg='white')
@@ -833,7 +882,8 @@ SerTVperformacesLabelD.grid(row=0, column=0, padx=17)
 
 SearchOptions = [
     "New Lates",
-    "All"]
+    "All",
+    "New Lates"]
 
 SerTV.set('All')
 
@@ -1045,6 +1095,96 @@ def do_popup_Client_order(event):
 
 managerTVClient.bind("<Button-3>", do_popup_Client_order)
 
+# ===================================================================================
+# managerOrderFrane
+# frames in manager client frame
+ManagerOrderFrame = Frame(managermenuframe, bg='white')
+ManagerOrderFrame.place(x=60, y=90, width=1300, height=1000)
+
+ManagerOrderTVFrame = Frame(ManagerOrderFrame, bg='white')
+ManagerOrderTVFrame.place(x=10, y=20)
+
+ManagerOrderInputsFrame = Frame(ManagerOrderFrame, bg='white')
+ManagerOrderInputsFrame.place(x=10, y=447)
+
+# tv frame
+# serach tv
+SerTVOrdersLabelD = ttk.Label(ManagerOrderTVFrame, text='Show:', font=13)
+SerTVOrdersLabelD.grid(row=0, column=0)
+
+SearchOptionsOrders = [
+    "Not Assigned",
+    "Assigned",
+    "All",
+    "Not Assigned"]
+
+SerTVDropOrders = ttk.OptionMenu(ManagerOrderTVFrame, SerTVOrders, *SearchOptionsOrders)
+SerTVDropOrders.grid(row=0, column=1, padx=5)
+
+SerPreformaTVButton = ttk.Button(ManagerOrderTVFrame, text='Search', command=ShowDriverPreformaceTV)
+SerPreformaTVButton.grid(row=0, column=2, padx=5)
+
+# tv
+managerTVOrders = ttk.Treeview(ManagerOrderTVFrame, height=10,
+                               columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3', '4', '5'))
+managerTVOrders.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+managerTVOrders.heading('#0', text='Order ID')
+managerTVOrders.column('#0', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#1', text='Company')
+managerTVOrders.column('#1', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#2', text='Pick Up')
+managerTVOrders.column('#2', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#3', text='Delivery')
+managerTVOrders.column('#3', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#4', text='Product ID')
+managerTVOrders.column('#4', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#5', text='Lorrie Reg')
+managerTVOrders.column('#5', minwidth=0, width=130, anchor='center')
+managerTVOrders.heading('#6', text='Driver')
+managerTVOrders.column('#6', minwidth=0, width=200, anchor='center')
+
+popupmenuorders = Menu(ManagerOrderTVFrame, tearoff=0)
+popupmenuorders.add_command(label='Delete', command=DelDriver)
+popupmenuorders.add_command(label='Send Email', command=EmailDriver)
+
+
+def do_popup_orders(event):
+    try:
+        popupmenuorders.tk_popup(event.x_root, event.y_root)
+    finally:
+        popupmenuorders.grab_release()
+
+
+managerTVDriver.bind("<Button-3>", do_popup_orders)
+
+# inputs orders
+CompanyLabel = ttk.Label(ManagerOrderInputsFrame, text='Company:')
+CompanyLabel.grid(row=0, column=0, padx=10)
+CompanyEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=Company)
+CompanyEntry.grid(row=0, column=1)
+
+PickUpLabel = ttk.Label(ManagerOrderInputsFrame, text='Pick Up:')
+PickUpLabel.grid(row=0, column=2, padx=10)
+PickUpEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=PickUp)
+PickUpEntry.grid(row=0, column=3)
+
+DeliveryLabel = ttk.Label(ManagerOrderInputsFrame, text='Delivery:')
+DeliveryLabel.grid(row=0, column=4, padx=10)
+DeliveryEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=Delivery)
+DeliveryEntry.grid(row=0, column=5)
+
+ProductIDLabel = ttk.Label(ManagerOrderInputsFrame, text='Product ID:')
+ProductIDLabel.grid(row=0, column=6, padx=10)
+ProductIDEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=ProductID)
+ProductIDEntry.grid(row=0, column=7)
+
+AddDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Add Order', command=AddOrder)
+AddDriverButton.grid(row=1, column=0, padx=10, pady=10)
+
+DelDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Delete Order', command=DelDriver)
+DelDriverButton.grid(row=1, column=2, padx=10, pady=10)
+
 # ==========================================================================================================
 # side menu
 home = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
@@ -1056,9 +1196,9 @@ frame = Frame(managermenuframe, bg='#0E2B4D', width=60, height=root.winfo_height
 frame.grid(row=1, column=0, sticky=NW, rowspan=4)
 
 # Make the buttons with the icons to be shown
-home_b = Button(frame, image=home, bg='#0E2B4D', relief='flat')
+home_b = Button(frame, image=home, bg='#0E2B4D', command=MangerMenu, relief='flat')
 set_b = Button(frame, image=settings, bg='#0E2B4D', command=ManagerDriver, relief='flat')
-ring_b = Button(frame, image=ring, bg='#0E2B4D', command=MangerMenu, relief='flat')
+ring_b = Button(frame, image=ring, bg='#0E2B4D', command=MangerOrders, relief='flat')
 
 # Put them on the frame
 home_b.grid(row=0, column=0, pady=10)
