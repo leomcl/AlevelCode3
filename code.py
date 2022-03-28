@@ -90,17 +90,15 @@ def Button1():
 
 
 def MangerMenu():
-    UpdateDriverMangerWidg()
     timememberscreen()
-    ShowOrderTV()
     raise_frame(managerDashFrame)
     root.geometry('1400x800')
 
 
 def ManagerDriver():
-    ShowOrderTV()
     raise_frame(ManagerDriverFrame)
-    root.geometry('1400x800')
+    ShowDriverTV()
+    UpdateDriverMangerWidg()
 
 
 def MangerOrders():
@@ -572,20 +570,142 @@ def AddOrder():
     conn.close()
     ShowOrderTV()
 
+
 def DeleteOrder():
     pass
 
 
 def ShowOrderTV():
+    FinialSerTVOrder = SerTVOrders.get()
+    print(FinialSerTVOrder)
+    if FinialSerTVOrder == 'All':
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerTVOrders.delete(*managerTVOrders.get_children())
+        c.execute("SELECT * FROM orders")
+        for row in c:
+            managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
+        print(c)
+        conn.commit()
+        conn.close()
+
+    elif FinialSerTVOrder == 'Assigned':
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerTVOrders.delete(*managerTVOrders.get_children())
+        c.execute("SELECT * FROM orders WHERE lorrieReg != 'None'")
+        for row in c:
+            managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
+        print(c)
+        conn.commit()
+        conn.close()
+
+    elif FinialSerTVOrder == 'Not Assigned':
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerTVOrders.delete(*managerTVOrders.get_children())
+        c.execute("SELECT * FROM orders WHERE lorrieReg = 'None'")
+        for row in c:
+            managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
+        print(c)
+        conn.commit()
+        conn.close()
+
+
+def Assign():
+    # get order
+    ClientcurItem = managerTVOrders.focus()
+    dictionaryClient = managerTVOrders.item(ClientcurItem)
+    CLientlistvalues = list(dictionaryClient.values())
+    global OrderNumber
+    OrderNumber = CLientlistvalues[0]
+    # top level
+
+    global AssignFrame
+    AssignFrame = Toplevel(height=500, width=1000)
+
+    OrderLabel = ttk.Label(AssignFrame, text='order', font=20)
+    OrderLabel.grid(row=0, column=0, columnspan=3)
+
+    # driver tv
+    global managerTVDriverAssign
+    managerTVDriverAssign = ttk.Treeview(AssignFrame, height=10)
+    managerTVDriverAssign.grid(row=1, column=0, pady=10, padx=10)
+    managerTVDriverAssign.heading('#0', text='Driver')
+    managerTVDriverAssign.column('#0', minwidth=0, width=200, anchor='center')
+
+    # lorrie tv
+    global managerTVLorrieAssign
+    managerTVLorrieAssign = ttk.Treeview(AssignFrame, height=10)
+    managerTVLorrieAssign.grid(row=1, column=2)
+    managerTVLorrieAssign.heading('#0', text='Lorrie')
+    managerTVLorrieAssign.column('#0', minwidth=0, width=200, anchor='center')
+
+    mangerAssignButton = ttk.Button(AssignFrame, text='Assign', command=AssignItems)
+    mangerAssignButton.grid(row=2, column=3)
+
+    def PopulateAssign():
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerTVDriverAssign.delete(*managerTVDriverAssign.get_children())
+        c.execute("SELECT email FROM drivers WHERE avaliablity = 'Yes'")
+        for row in c:
+            managerTVDriverAssign.insert('', 'end', text=row[0])
+        conn.commit()
+        conn.close()
+
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        managerTVLorrieAssign.delete(*managerTVLorrieAssign.get_children())
+        c.execute("SELECT reg FROM lorry WHERE avaliablity = 'Yes'")
+        for row in c:
+            managerTVLorrieAssign.insert('', 'end', text=row[0])
+        conn.commit()
+        conn.close()
+
+    PopulateAssign()
+
+
+def AssignItems():
+    # getting data drom tv's
+    print('Order', OrderNumber)
+    DriverEmail = managerTVDriverAssign.focus()
+    dictionaryDriver = managerTVDriverAssign.item(DriverEmail)
+    DriverListVAlues = list(dictionaryDriver.values())
+    FDriverEmail = DriverListVAlues[0]
+    print('Driver:', FDriverEmail)
+    LorryReg = managerTVLorrieAssign.focus()
+    dictionaryLorry = managerTVLorrieAssign.item(LorryReg)
+    LorryListVAlues = list(dictionaryLorry.values())
+    FLorryReg = LorryListVAlues[0]
+    print('lorry', FLorryReg)
+
+    # writing to orders FDriverEmail, FLorryReg
     conn = sqlite3.connect('data.db')
     c = conn.cursor()
-    managerTVOrders.delete(*managerTVOrders.get_children())
-    c.execute("SELECT * FROM orders")
-    for row in c:
-        managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
-    print(c)
+    sql = "UPDATE orders SET lorrieReg = (?), driverID = (?) WHERE orderID = (?)"
+    val = (FLorryReg, FDriverEmail, OrderNumber)
+    c.execute(sql, val)
     conn.commit()
     conn.close()
+
+    # writing to drivers
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE drivers SET avaliablity = 'No' WHERE email = (?)", (FDriverEmail,))
+    conn.commit()
+    conn.close()
+
+    # writting to lorry
+    # writing to drivers
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE lorry SET avaliablity = 'No' WHERE reg = (?)", (FLorryReg,))
+    conn.commit()
+    conn.close()
+    ShowOrderTV()
+
+    AssignFrame.destroy()
 
 
 class UserButtons():
@@ -1121,7 +1241,7 @@ SearchOptionsOrders = [
 SerTVDropOrders = ttk.OptionMenu(ManagerOrderTVFrame, SerTVOrders, *SearchOptionsOrders)
 SerTVDropOrders.grid(row=0, column=1, padx=5)
 
-SerPreformaTVButton = ttk.Button(ManagerOrderTVFrame, text='Search', command=ShowDriverPreformaceTV)
+SerPreformaTVButton = ttk.Button(ManagerOrderTVFrame, text='Search', command=ShowOrderTV)
 SerPreformaTVButton.grid(row=0, column=2, padx=5)
 
 # tv
@@ -1146,7 +1266,7 @@ managerTVOrders.column('#6', minwidth=0, width=200, anchor='center')
 
 popupmenuorders = Menu(ManagerOrderTVFrame, tearoff=0)
 popupmenuorders.add_command(label='Delete', command=DelDriver)
-popupmenuorders.add_command(label='Send Email', command=EmailDriver)
+popupmenuorders.add_command(label='Assign', command=Assign)
 
 
 def do_popup_orders(event):
@@ -1156,7 +1276,7 @@ def do_popup_orders(event):
         popupmenuorders.grab_release()
 
 
-managerTVDriver.bind("<Button-3>", do_popup_orders)
+managerTVOrders.bind("<Button-3>", do_popup_orders)
 
 # inputs orders
 CompanyLabel = ttk.Label(ManagerOrderInputsFrame, text='Company:')
