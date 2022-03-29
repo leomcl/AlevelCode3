@@ -85,14 +85,49 @@ def contract2():
 def fill2():
     if expanded:  # If the frame is exanded
         # Show a text, and remove the image
-        home_b2.config(text='Home', image='', font=(0, 21), fg='white')
-        set_b2.config(text='Users', image='', font=(0, 21), fg='white')
+        home_b2.config(text='Driver', image='', font=(0, 21), fg='white')
+        set_b2.config(text='Driver', image='', font=(0, 21), fg='white')
         ring_b2.config(text='Orders', image='', font=(0, 21), fg='white')
     else:
         # Bring the image back
         home_b2.config(image=home, font=(0, 21))
         set_b2.config(image=settings, font=(0, 21))
         ring_b2.config(image=ring, font=(0, 21))
+
+
+def expand3():
+    global cur_width, expanded
+    cur_width += 100  # Increase the width by 10
+    rep = root.after(5, expand3)  # Repeat this func every 5 ms
+    frame3.config(width=cur_width)  # Change the width to new increase width
+    if cur_width >= max_w:  # If width is greater than maximum width
+        expanded = True  # Frame is expended
+        root.after_cancel(rep)  # Stop repeating the func
+        fill3()
+
+
+def contract3():
+    global cur_width, expanded
+    cur_width -= 100  # Reduce the width by 10
+    rep = root.after(5, contract3)  # Call this func every 5 ms
+    frame3.config(width=cur_width)  # Change the width to new reduced width
+    if cur_width <= min_w:  # If it is back to normal width
+        expanded = False  # Frame is not expanded
+        root.after_cancel(rep)  # Stop repeating the func
+        fill3()
+
+
+def fill3():
+    if expanded:  # If the frame is exanded
+        # Show a text, and remove the image
+        home_b3.config(text='Orders', image='', font=(0, 21), fg='white')
+        set_b3.config(text='New', image='', font=(0, 21), fg='white')
+        ring_b3.config(text='client', image='', font=(0, 21), fg='white')
+    else:
+        # Bring the image back
+        home_b3.config(image=home, font=(0, 21))
+        set_b3.config(image=settings, font=(0, 21))
+        ring_b3.config(image=ring, font=(0, 21))
 
 
 def LogOut():
@@ -112,7 +147,7 @@ def timedriverscreen():
     def timedriver():
         string = strftime('%H:%M:%S %p')
         driverMemberClockLabel.config(text=string)
-        driverMemberClockLabel.after(1000, timedriverscreen())
+        driverMemberClockLabel.after(1000, timedriverscreen)
 
     timedriver()
 
@@ -127,6 +162,12 @@ def raise_frameDriver(frame_name):
     frame_name.tkraise()
     # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
     frame2.tkraise()
+
+
+def raise_frameClient(frame_name):
+    frame_name.tkraise()
+    # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
+    frame3.tkraise()
 
 
 def BackLogin():
@@ -148,8 +189,18 @@ def MangerMenu():
 def DriverMenu():
     # timedriverscreen()
     ShowdriverOrderTv()
-    raise_frame(drivermenuframe)
+    raise_frameDriver(drivermenuframe)
     root.geometry('1400x800')
+
+
+def ClientMenu():
+    ShowclientTVOrders()
+    raise_frameClient(clientmenuframe)
+    root.geometry('1400x800')
+
+def ClientOrders():
+    ShowclientTVOrders()
+    raise_frameClient(clientOrdersFrame)
 
 
 def ManagerDriver():
@@ -172,6 +223,9 @@ def ManagerClient():
     raise_frame(ManagerClientFrame)
     ShowClientTV()
 
+
+def Neworder():
+    raise_frameClient(clientNewOrdersFrame)
 
 def usernameandpass():
     conn = sqlite3.connect('data.db')
@@ -209,8 +263,8 @@ def login():
             DriverMenu()
             print('driver')
         elif row[2] == Finialpassword and row[3] == 'client':
-            MangerMenu()
-            print('driver')
+            ClientCompany()
+            print('clinent')
         elif row[2] == Finialpassword and row[3] == 'loader':
             MangerMenu()
             print('driver')
@@ -541,11 +595,12 @@ def AddClient():
     Ffirstname = FirstNameC.get()
     Flastname = LastNameC.get()
     Femail = EmailC.get()
+    Fcompnay = CompanyC.get()
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
 
-    sql = "INSERT INTO clients (email, firstname, lastname) VALUES (?, ?, ?)"
-    val = (Femail, Ffirstname, Flastname)
+    sql = "INSERT INTO clients (email, firstname, lastname, company) VALUES (?, ?, ?, ?)"
+    val = (Femail, Ffirstname, Flastname, Fcompnay)
     mycursor.execute(sql, val)
     mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
     conn.commit()
@@ -603,7 +658,7 @@ def ShowClientTV():
     managerTVClient.delete(*managerTVClient.get_children())
     c.execute("SELECT * FROM clients")
     for row in c:
-        managerTVClient.insert('', 'end', text=row[0], values=row[1:3])
+        managerTVClient.insert('', 'end', text=row[0], values=row[1:4])
     print(c)
     conn.commit()
     conn.close()
@@ -619,10 +674,14 @@ def AddOrder():
     FProductID = ProductID.get()
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
+    status = 'pending'
 
     sql = "INSERT INTO orders (orderID, company, pickUpAddress, deliveryAddress, productID, lorrieReg, driverID) VALUES (?, ?, ?, ?, ?, ?, ?)"
     val = (OrderID, FCompany, FPickUp, FDelivery, FProductID, LorrieRed, Driver)
     mycursor.execute(sql, val)
+    sql2 = "INSERT INTO orderStatus (orderID, status) VALUES (?, ?)"
+    val2 = (OrderID, status)
+    mycursor.execute(sql2, val2)
 
     conn.commit()
     conn.close()
@@ -778,6 +837,95 @@ def AssignItems():
     AssignFrame.destroy()
 
 
+def show_status(event):
+    OrderNum = driverTVOrders.focus()
+    dictionaryOrder = driverTVOrders.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[0]
+    print(FOrderNum)
+    status = ''
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT status FROM orderStatus WHERE orderID = (?)", (FOrderNum,))
+    for row in c:
+        status = row[0]
+    conn.commit()
+    conn.close()
+    TheStatus.set(status)
+
+
+def show_statusClient(event):
+    OrderNum = clientTVOrders.focus()
+    dictionaryOrder = clientTVOrders.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[0]
+    print(FOrderNum)
+    status = ''
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT status FROM orderStatus WHERE orderID = (?)", (FOrderNum,))
+    for row in c:
+        status = row[0]
+    conn.commit()
+    conn.close()
+    ClientTheStatus.set(status)
+
+
+def OutForDelivery():
+    OrderNum = driverTVOrders.focus()
+    dictionaryOrder = driverTVOrders.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[0]
+    print(FOrderNum)
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE orderStatus SET status = 'Out For Delivery' WHERE orderID = (?)", (FOrderNum,))
+    conn.commit()
+    conn.close()
+
+
+def Delivered():
+    OrderNum = driverTVOrders.focus()
+    dictionaryOrder = driverTVOrders.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[0]
+    print(FOrderNum)
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE orderStatus SET status = 'Delivered' WHERE orderID = (?)", (FOrderNum,))
+    conn.commit()
+    conn.close()
+
+
+def ClientCompany():
+    global TheCompnay
+    TheCompnay = ''
+    print(Finialusername)
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT company FROM clients WHERE email = (?)", (Finialusername,))
+    for row in c:
+        TheCompnay = row[0]
+    conn.commit()
+    conn.close()
+
+    print('print', TheCompnay)
+    ClientMenu()
+
+
+def ShowclientTVOrders():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    clientTVOrders.delete(*clientTVOrders.get_children())
+    c.execute(
+        "SELECT orderID, pickUpAddress, deliveryAddress, productID, lorrieReg, driverID FROM orders WHERE company = (?)",
+        (TheCompnay,))
+    for row in c:
+        clientTVOrders.insert('', 'end', text=row[0], values=row[1:6])
+    conn.commit()
+    conn.close()
+
+
 class UserButtons():
     def __init__(self):
         self.userButtonsFrame = None
@@ -835,6 +983,7 @@ MangerTVSerValClient = StringVar()
 FirstNameC = StringVar()
 LastNameC = StringVar()
 EmailC = StringVar()
+CompanyC = StringVar()
 
 # orders
 SerTVOrders = StringVar()
@@ -842,6 +991,14 @@ Company = StringVar()
 PickUp = StringVar()
 Delivery = StringVar()
 ProductID = StringVar()
+
+# driverorders
+global TheStatus
+TheStatus = StringVar()
+
+# clinetordrs
+global ClientTheStatus
+ClientTheStatus = StringVar()
 
 # ===========================================================================
 # frames
@@ -855,10 +1012,11 @@ ManagerDriverFrameDash = Frame(root, bg='white')
 ManagerStaffFrame = Frame(root, bg='light grey')
 ManagerClassesFrame = Frame(root, bg='light grey')
 drivermenuframe = Frame(root, bg='light grey')
+clientmenuframe = Frame(root, bg='light grey')
 
 for frame in (
         loginframe, create_account_frame, resetpasswordframe, membermenuframe, managermenuframe,
-        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash, drivermenuframe):
+        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash, drivermenuframe, clientmenuframe):
     frame.grid(row=0, column=0, sticky='news')
 
 # styles
@@ -1196,7 +1354,7 @@ search_entryD = ttk.Entry(managerTVFrameClient, textvariable=MangerTVSerValClien
 search_entryD.grid(row=0, column=1)
 
 managerTVClient = ttk.Treeview(managerTVFrameClient, height=10,
-                               columns=('First Name', 'Last Name'))
+                               columns=('First Name', 'Last Name', 'company'))
 managerTVClient.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
 
 managerTVClient.heading('#0', text='Email')
@@ -1205,6 +1363,8 @@ managerTVClient.heading('#1', text='First Name')
 managerTVClient.column('#1', minwidth=0, width=110, anchor='center')
 managerTVClient.heading('#2', text='Last Name')
 managerTVClient.column('#2', minwidth=0, width=130, anchor='center')
+managerTVClient.heading('#3', text='Compnay')
+managerTVClient.column('#3', minwidth=0, width=130, anchor='center')
 
 popupmenustaffClient = Menu(managerTVFrameClient, tearoff=0)
 popupmenustaffClient.add_command(label='Delete', command=DelClient)
@@ -1236,6 +1396,11 @@ EmailLabelC = ttk.Label(managerInputsFrameClient, text='Email:')
 EmailLabelC.grid(row=0, column=4, padx=10)
 EmailentryC = ttk.Entry(managerInputsFrameClient, textvariable=EmailC)
 EmailentryC.grid(row=0, column=5)
+
+CompanyLabelC = ttk.Label(managerInputsFrameClient, text='Company:')
+CompanyLabelC.grid(row=0, column=6, padx=10)
+CompnayentryC = ttk.Entry(managerInputsFrameClient, textvariable=CompanyC)
+CompnayentryC.grid(row=0, column=7)
 
 AddClientButton = ttk.Button(managerInputsFrameClient, text='Add Client', command=AddClient)
 AddClientButton.grid(row=1, column=0, padx=10, pady=10)
@@ -1362,12 +1527,20 @@ DelDriverButton.grid(row=1, column=2, padx=10, pady=10)
 
 # ==========================================================================================================
 # drivermenuframe
+# frames
 driverOrdersFrame = Frame(drivermenuframe, bg='white')
 driverOrdersFrame.place(x=60, y=90, width=1300, height=1000)
 
 DriverOrderTVFrame = Frame(driverOrdersFrame, bg='white')
 DriverOrderTVFrame.place(x=10, y=20)
 
+DriverOrderStatusFrame = Frame(driverOrdersFrame, bg='white')
+DriverOrderStatusFrame.place(x=850, y=30)
+
+DriverOrderButtonFrame = Frame(driverOrdersFrame, bg='white')
+DriverOrderButtonFrame.place(x=10, y=500)
+
+# tv
 driverTVOrders = ttk.Treeview(DriverOrderTVFrame, height=10,
                               columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3', '4'))
 driverTVOrders.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
@@ -1397,6 +1570,63 @@ def do_popup_orders_driver(event):
 
 
 driverTVOrders.bind("<Button-3>", do_popup_orders_driver)
+driverTVOrders.bind("<Button-1>", show_status)
+
+# status frame
+statuslabel = Label(DriverOrderStatusFrame, text='Status:', font=20)
+statuslabel.grid(row=0, column=0)
+statuslabel2 = ttk.Label(DriverOrderStatusFrame, textvariable=TheStatus, font=20)
+statuslabel2.grid(row=0, column=1)
+
+# button frame
+OutForDeliveryButton = ttk.Button(DriverOrderButtonFrame, text='Out For Delivery', command=OutForDelivery)
+OutForDeliveryButton.grid(row=0, column=0)
+
+DeliveredButton = ttk.Button(DriverOrderButtonFrame, text='Delivered', command=Delivered)
+DeliveredButton.grid(row=0, column=1)
+
+# ==========================================================================================================
+# clientmenuframe
+# frames
+clientOrdersFrame = Frame(clientmenuframe, bg='white')
+clientOrdersFrame.place(x=60, y=90, width=1300, height=1000)
+
+ClientOrderTVFrame = Frame(clientOrdersFrame, bg='white')
+ClientOrderTVFrame.place(x=10, y=20)
+
+ClientOrderStatusFrame = Frame(clientOrdersFrame, bg='white')
+ClientOrderStatusFrame.place(x=850, y=30)
+
+# tv
+clientTVOrders = ttk.Treeview(ClientOrderTVFrame, height=10,
+                              columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3', '4'))
+clientTVOrders.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+clientTVOrders.heading('#0', text='Order ID')
+clientTVOrders.column('#0', minwidth=0, width=130, anchor='center')
+clientTVOrders.heading('#1', text='Pick Up')
+clientTVOrders.column('#1', minwidth=0, width=130, anchor='center')
+clientTVOrders.heading('#2', text='Delivery')
+clientTVOrders.column('#2', minwidth=0, width=130, anchor='center')
+clientTVOrders.heading('#3', text='Product ID')
+clientTVOrders.column('#3', minwidth=0, width=130, anchor='center')
+clientTVOrders.heading('#4', text='Lorrie Reg')
+clientTVOrders.column('#4', minwidth=0, width=130, anchor='center')
+clientTVOrders.heading('#5', text='Driver')
+clientTVOrders.column('#5', minwidth=0, width=130, anchor='center')
+
+clientTVOrders.bind("<Button-1>", show_statusClient)
+
+# status frame
+Clientstatuslabel = Label(ClientOrderStatusFrame, text='Status:', font=20)
+Clientstatuslabel.grid(row=0, column=0)
+Clientstatuslabel2 = ttk.Label(ClientOrderStatusFrame, textvariable=ClientTheStatus, font=20)
+Clientstatuslabel2.grid(row=0, column=1)
+
+# ========================================================================================================
+# new order frame
+clientNewOrdersFrame = Frame(clientmenuframe, bg='white')
+clientNewOrdersFrame.place(x=60, y=90, width=1300, height=1000)
 
 # ==========================================================================================================
 # top menu manager
@@ -1451,7 +1681,7 @@ photodrivermenuscreen = PhotoImage(file='white-footer-logo.png')
 photolabeldriver = Label(labelframe3, image=photodrivermenuscreen, bg='#0E2B4D')
 photolabeldriver.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_labeldriver = Label(labelframe3, text='Manager              ', font=40, fg='white', bg='#0E2B4D')
+username_labeldriver = Label(labelframe3, text='Driver              ', font=40, fg='white', bg='#0E2B4D')
 username_labeldriver.grid(row=0, column=2, padx=370)
 
 driverMemberClockLabel = Label(labelframe3, bg='#0E2B4D', fg='white', font='bold')
@@ -1485,6 +1715,50 @@ frame2.bind('<Leave>', lambda e: contract2())
 
 # So that it does not depend on the widgets inside the frame
 frame2.grid_propagate(False)
+
+# ==========================================================================================================
+# top menu client
+labelframe4 = Frame(clientmenuframe, bg='#0E2B4D')
+labelframe4.grid(row=0, column=0, columnspan=3, sticky=NW)
+
+photoclientmenuscreen = PhotoImage(file='white-footer-logo.png')
+photolabelclient = Label(labelframe4, image=photoclientmenuscreen, bg='#0E2B4D')
+photolabelclient.grid(row=0, column=0, sticky=NW, pady=5)
+
+username_labelclient = Label(labelframe4, text='Client              ', font=40, fg='white', bg='#0E2B4D')
+username_labelclient.grid(row=0, column=2, padx=370)
+
+clientMemberClockLabel = Label(labelframe4, bg='#0E2B4D', fg='white', font='bold')
+clientMemberClockLabel.grid(row=0, column=4, padx=10)
+
+LOGoutButtonclient = Button(labelframe4, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtonclient.grid(row=0, column=5, ipady=30, ipadx=10)
+
+# side menu manager
+home3 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
+settings3 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
+ring3 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
+
+root.update()  # For the width to get updated
+frame3 = Frame(clientmenuframe, bg='#0E2B4D', width=60, height=root.winfo_height())
+frame3.grid(row=1, column=0, sticky=NW, rowspan=4)
+
+# Make the buttons with the icons to be shown
+home_b3 = Button(frame3, image=home3, bg='#0E2B4D', command=ClientOrders, relief='flat')
+set_b3 = Button(frame3, image=settings3, bg='#0E2B4D', command=Neworder, relief='flat')
+ring_b3 = Button(frame3, image=ring3, bg='#0E2B4D', command=MangerOrders, relief='flat')
+
+# Put them on the frame
+home_b3.grid(row=0, column=0, pady=10)
+set_b3.grid(row=1, column=0, pady=50)
+ring_b3.grid(row=2, column=0)
+
+# Bind to the frame, if entered or left
+frame3.bind('<Enter>', lambda e: expand3())
+frame3.bind('<Leave>', lambda e: contract3())
+
+# So that it does not depend on the widgets inside the frame
+frame3.grid_propagate(False)
 
 raise_frame(loginframe)
 root.mainloop()
