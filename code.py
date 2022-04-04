@@ -15,6 +15,8 @@ import config
 import time
 from time import strftime
 from PIL import Image, ImageTk
+import validation
+import matplotlib.pyplot as plt
 
 # hello
 
@@ -170,6 +172,12 @@ def raise_frameClient(frame_name):
     frame3.tkraise()
 
 
+def raise_frameLoader(frame_name):
+    frame_name.tkraise()
+    # "frame" (the side navagation board) must be raised after desired frame, as to keep it in front
+    frame3.tkraise()
+
+
 def BackLogin():
     raise_frame(loginframe)
     root.geometry('640x600')
@@ -197,6 +205,13 @@ def ClientMenu():
     ShowclientTVOrders()
     raise_frameClient(clientmenuframe)
     root.geometry('1400x800')
+
+
+def LoaderMenu():
+    ShowLoaderTV()
+    raise_frameLoader(loadermenuframe)
+    root.geometry('1400x800')
+
 
 def ClientOrders():
     ShowclientTVOrders()
@@ -227,6 +242,7 @@ def ManagerClient():
 def Neworder():
     raise_frameClient(clientNewOrdersFrame)
 
+
 def usernameandpass():
     conn = sqlite3.connect('data.db')
     mycursor = conn.cursor()
@@ -251,28 +267,39 @@ def login():
     Finialusername = username.get()
     Finialpassword = Password.get()
     print(Finialpassword, Finialusername)
-    conn = sqlite3.connect('data.db')
-    c = conn.cursor()
-    c.execute("SELECT rowid, * from passwords WHERE username = (?)", (Finialusername,))
-    reader = c.fetchall()
-    conn.commit()
-    conn.close()
-    print(reader)
-    for row in reader:
-        if row[2] == Finialpassword and row[3] == 'driver':
-            DriverMenu()
-            print('driver')
-        elif row[2] == Finialpassword and row[3] == 'client':
-            ClientCompany()
-            print('clinent')
-        elif row[2] == Finialpassword and row[3] == 'loader':
-            MangerMenu()
-            print('driver')
-        elif row[2] == Finialpassword and row[3] == 'customs':
-            MangerLogin()
-            print('customs')
-        else:
-            messagebox.showinfo("Info", "Incorect password", icon="info")
+    if validation.presenceCheck(Finialusername) is False:
+        messagebox.showwarning('', 'Presnce Username')
+    elif validation.presenceCheck(Finialpassword) is False:
+        messagebox.showwarning('', 'Presnsce password')
+    elif validation.emailCheck(Finialusername) is False:
+        messagebox.showwarning('', 'email check')
+    elif validation.intTypeCheck(Finialusername) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Finialpassword) is True:
+        messagebox.showwarning()
+    else:
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        c.execute("SELECT rowid, * from passwords WHERE username = (?)", (Finialusername,))
+        reader = c.fetchall()
+        conn.commit()
+        conn.close()
+        print(reader)
+        for row in reader:
+            if row[2] == Finialpassword and row[3] == 'driver':
+                DriverMenu()
+                print('driver')
+            elif row[2] == Finialpassword and row[3] == 'client':
+                ClientCompany()
+                print('clinent')
+            elif row[2] == Finialpassword and row[3] == 'loader':
+                LoaderMenu()
+                print('driver')
+            elif row[2] == Finialpassword and row[3] == 'customs':
+                MangerLogin()
+                print('customs')
+            else:
+                messagebox.showinfo("Info", "Incorect password", icon="info")
 
 
 def forgot_password():
@@ -378,40 +405,55 @@ def AddDriver():
     Ffirstname = FirstNameD.get()
     Flastname = LastNameD.get()
     Femail = EmailD.get()
-    conn = sqlite3.connect('data.db')
-    mycursor = conn.cursor()
 
-    sql = "INSERT INTO drivers (email, firstname, lastname, deliveries, avaliablity) VALUES (?, ?, ?, ?, ?)"
-    val = (Femail, Ffirstname, Flastname, 0, "Yes")
-    mycursor.execute(sql, val)
-    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
-    conn.commit()
-    conn.close()
+    if validation.presenceCheck(Ffirstname) is False:
+        messagebox.showwarning()
+    elif validation.emailCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Flastname) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Ffirstname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Flastname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Femail) is True:
+        messagebox.showwarning()
+    else:
+        conn = sqlite3.connect('data.db')
+        mycursor = conn.cursor()
+        sql = "INSERT INTO drivers (email, firstname, lastname, deliveries, avaliablity) VALUES (?, ?, ?, ?, ?)"
+        val = (Femail, Ffirstname, Flastname, 0, "Yes")
+        mycursor.execute(sql, val)
+        mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
+        conn.commit()
+        conn.close()
 
-    subject = 'New Hannon Account'
-    msg = MIMEMultipart()
-    msg['From'] = config.emailAddress
-    msg['To'] = Femail
-    msg['Subject'] = subject
-    body = 'Welcome to hannon computer system. To set password click "reset password"'
-    msg.attach(MIMEText(body, 'plain'))
+        subject = 'New Hannon Account'
+        msg = MIMEMultipart()
+        msg['From'] = config.emailAddress
+        msg['To'] = Femail
+        msg['Subject'] = subject
+        body = 'Welcome to hannon computer system. To set password click "reset password"'
+        msg.attach(MIMEText(body, 'plain'))
 
-    part = MIMEBase('application', 'octet-stream')
-    text = msg.as_string()
-    try:
-        server = smtplib.SMTP('smtp.gmail.com:587')
-        server.ehlo()
-        server.starttls()
-        server.login(config.emailAddress, config.password)
-        server.sendmail(config.emailAddress, Femail, text)
-        server.quit()
-        print('email sent')
-        messagebox.showinfo('Info', 'Added ')
-        raise_frame(resetpasswordframe)
-        resetpasswordframe.geometry('500x500')
+        part = MIMEBase('application', 'octet-stream')
+        text = msg.as_string()
+        try:
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(config.emailAddress, config.password)
+            server.sendmail(config.emailAddress, Femail, text)
+            server.quit()
+            print('email sent')
+            messagebox.showinfo('Info', 'Added ')
+            raise_frame(resetpasswordframe)
+            resetpasswordframe.geometry('500x500')
 
-    except:
-        print('Email not sent')
+        except:
+            print('Email not sent')
 
     ShowDriverTV()
     UpdateDriverMangerWidg()
@@ -498,6 +540,18 @@ def UpdateDriverMangerWidg():
     conn.close()
 
 
+def CreateScoreBarChart():
+    fAmountNo = LableValueNo.get()
+    fLableValueNew = LableValueNew.get()
+    fLableValueYes = LableValueYes.get()
+    fullnames = 'available', 'unavailable', 'new lates'
+    scores = int(fLableValueYes), int(fAmountNo), int(fLableValueNew)
+    print(int(fAmountNo))
+    plt.bar(fullnames, scores, align="center", alpha=0.5, color=['b'])
+    plt.xticks(fullnames, fullnames)
+    plt.show()
+
+
 def EmailDriverWarningAll():
     pass
 
@@ -516,40 +570,55 @@ def AddLoader():
     Ffirstname = FirstNameL.get()
     Flastname = LastNameL.get()
     Femail = EmailL.get()
-    conn = sqlite3.connect('data.db')
-    mycursor = conn.cursor()
 
-    sql = "INSERT INTO loaders (email, firstname, lastname) VALUES (?, ?, ?)"
-    val = (Femail, Ffirstname, Flastname)
-    mycursor.execute(sql, val)
-    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
-    conn.commit()
-    conn.close()
+    if validation.presenceCheck(Ffirstname) is False:
+        messagebox.showwarning()
+    elif validation.emailCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Flastname) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Ffirstname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Flastname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Femail) is True:
+        messagebox.showwarning()
+    else:
+        conn = sqlite3.connect('data.db')
+        mycursor = conn.cursor()
+        sql = "INSERT INTO loaders (email, firstname, lastname) VALUES (?, ?, ?)"
+        val = (Femail, Ffirstname, Flastname)
+        mycursor.execute(sql, val)
+        mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
+        conn.commit()
+        conn.close()
 
-    subject = 'New Hannon Account'
-    msg = MIMEMultipart()
-    msg['From'] = config.emailAddress
-    msg['To'] = Femail
-    msg['Subject'] = subject
-    body = 'Welcome to hannon computer system. To set password click "reset password"'
-    msg.attach(MIMEText(body, 'plain'))
+        subject = 'New Hannon Account'
+        msg = MIMEMultipart()
+        msg['From'] = config.emailAddress
+        msg['To'] = Femail
+        msg['Subject'] = subject
+        body = 'Welcome to hannon computer system. To set password click "reset password"'
+        msg.attach(MIMEText(body, 'plain'))
 
-    part = MIMEBase('application', 'octet-stream')
-    text = msg.as_string()
-    try:
-        server = smtplib.SMTP('smtp.gmail.com:587')
-        server.ehlo()
-        server.starttls()
-        server.login(config.emailAddress, config.password)
-        server.sendmail(config.emailAddress, Femail, text)
-        server.quit()
-        print('email sent')
-        messagebox.showinfo('Info', 'Added ')
-        raise_frame(resetpasswordframe)
-        resetpasswordframe.geometry('500x500')
+        part = MIMEBase('application', 'octet-stream')
+        text = msg.as_string()
+        try:
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(config.emailAddress, config.password)
+            server.sendmail(config.emailAddress, Femail, text)
+            server.quit()
+            print('email sent')
+            messagebox.showinfo('Info', 'Added ')
+            raise_frame(resetpasswordframe)
+            resetpasswordframe.geometry('500x500')
 
-    except:
-        print('Email not sent')
+        except:
+            print('Email not sent')
 
     ShowLoaderTV()
 
@@ -590,44 +659,60 @@ def ShowLoaderTV():
 
 
 def AddClient():
+    messagebox.showwarning('error', 'Client Added')
     type = 'client'
     password = 'NotSet'
     Ffirstname = FirstNameC.get()
     Flastname = LastNameC.get()
     Femail = EmailC.get()
     Fcompnay = CompanyC.get()
-    conn = sqlite3.connect('data.db')
-    mycursor = conn.cursor()
+    if validation.presenceCheck(Ffirstname) is False:
+        messagebox.showwarning()
+    elif validation.emailCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Flastname) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(Femail) is False:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Ffirstname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Flastname) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(Femail) is True:
+        messagebox.showwarning()
+    else:
+        conn = sqlite3.connect('data.db')
+        mycursor = conn.cursor()
 
-    sql = "INSERT INTO clients (email, firstname, lastname, company) VALUES (?, ?, ?, ?)"
-    val = (Femail, Ffirstname, Flastname, Fcompnay)
-    mycursor.execute(sql, val)
-    mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
-    conn.commit()
-    conn.close()
+        sql = "INSERT INTO clients (email, firstname, lastname, company) VALUES (?, ?, ?, ?)"
+        val = (Femail, Ffirstname, Flastname, Fcompnay)
+        mycursor.execute(sql, val)
+        mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
+        conn.commit()
+        conn.close()
 
-    subject = 'New Hannon Account'
-    msg = MIMEMultipart()
-    msg['From'] = config.emailAddress
-    msg['To'] = Femail
-    msg['Subject'] = subject
-    body = 'Welcome to hannon computer system. To set password click "reset password"'
-    msg.attach(MIMEText(body, 'plain'))
+        subject = 'New Hannon Account'
+        msg = MIMEMultipart()
+        msg['From'] = config.emailAddress
+        msg['To'] = Femail
+        msg['Subject'] = subject
+        body = 'Welcome to hannon computer system. To set password click "reset password"'
+        msg.attach(MIMEText(body, 'plain'))
 
-    part = MIMEBase('application', 'octet-stream')
-    text = msg.as_string()
-    try:
-        server = smtplib.SMTP('smtp.gmail.com:587')
-        server.ehlo()
-        server.starttls()
-        server.login(config.emailAddress, config.password)
-        server.sendmail(config.emailAddress, Femail, text)
-        server.quit()
-        print('email sent')
-        messagebox.showinfo('Info', 'Added ')
+        part = MIMEBase('application', 'octet-stream')
+        text = msg.as_string()
+        try:
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(config.emailAddress, config.password)
+            server.sendmail(config.emailAddress, Femail, text)
+            server.quit()
+            print('email sent')
+            messagebox.showinfo('Info', 'Added ')
 
-    except:
-        print('Email not sent')
+        except:
+            print('Email not sent')
 
     ShowClientTV()
 
@@ -665,27 +750,58 @@ def ShowClientTV():
 
 
 def AddOrder():
+    FQuantity = Quantity.get()
+    FProductName = ProductName.get()
     LorrieRed = 'None'
     Driver = 'None'
     OrderID = random.randint(1, 1000)
-    FCompany = Company.get()
+    ProductID = random.randint(1, 1000)
+    FCompany = TheCompnay
     FPickUp = PickUp.get()
     FDelivery = Delivery.get()
-    FProductID = ProductID.get()
-    conn = sqlite3.connect('data.db')
-    mycursor = conn.cursor()
+    FloadID = 'Not Assigned'
     status = 'pending'
+    if validation.presenceCheck(FPickUp) is False:
+        messagebox.showwarning('', 'pick up')
+    elif validation.presenceCheck(FDelivery) is False:
+        messagebox.showwarning('', 'delivery')
+    else:
+        conn = sqlite3.connect('data.db')
+        mycursor = conn.cursor()
+        sql = "INSERT INTO orders (orderID, company, pickUpAddress, deliveryAddress, loadID, lorrieReg, driverID) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        val = (OrderID, FCompany, FPickUp, FDelivery, FloadID, LorrieRed, Driver)
+        mycursor.execute(sql, val)
+        sql2 = "INSERT INTO orderStatus (orderID, status) VALUES (?, ?)"
+        val2 = (OrderID, status)
+        mycursor.execute(sql2, val2)
+        conn.commit()
+        conn.close()
 
-    sql = "INSERT INTO orders (orderID, company, pickUpAddress, deliveryAddress, productID, lorrieReg, driverID) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    val = (OrderID, FCompany, FPickUp, FDelivery, FProductID, LorrieRed, Driver)
-    mycursor.execute(sql, val)
-    sql2 = "INSERT INTO orderStatus (orderID, status) VALUES (?, ?)"
-    val2 = (OrderID, status)
-    mycursor.execute(sql2, val2)
+        AddProduct(OrderID)
+    ShowclientTVOrders()
 
-    conn.commit()
-    conn.close()
-    ShowOrderTV()
+
+def AddProduct(OrderID):
+    FProductName = ProductName.get()
+    FQuantity = Quantity.get()
+    ProductID = random.randint(1, 1000)
+    FCompany = TheCompnay
+    if validation.presenceCheck(FProductName) is False:
+        messagebox.showwarning()
+    elif validation.presenceCheck(FQuantity) is False:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(FProductName) is True:
+        messagebox.showwarning()
+    elif validation.intTypeCheck(FQuantity) is False:
+        messagebox.showwarning()
+    else:
+        conn = sqlite3.connect('data.db')
+        mycursor = conn.cursor()
+        sql = "INSERT INTO products (productID, orderID, company, productName, quantity) VALUES (?, ?, ?, ?, ?)"
+        val = (ProductID, OrderID, FCompany, FProductName, FQuantity)
+        mycursor.execute(sql, val)
+        conn.commit()
+        conn.close()
 
 
 def DeleteOrder():
@@ -748,11 +864,10 @@ def Assign():
     CLientlistvalues = list(dictionaryClient.values())
     global OrderNumber
     OrderNumber = CLientlistvalues[0]
-    # top level
 
+    # top level
     global AssignFrame
     AssignFrame = Toplevel(height=500, width=1000)
-
     OrderLabel = ttk.Label(AssignFrame, text='order', font=20)
     OrderLabel.grid(row=0, column=0, columnspan=3)
 
@@ -796,45 +911,48 @@ def Assign():
 
 
 def AssignItems():
-    # getting data drom tv's
-    print('Order', OrderNumber)
+    # getting data from tv's
     DriverEmail = managerTVDriverAssign.focus()
     dictionaryDriver = managerTVDriverAssign.item(DriverEmail)
     DriverListVAlues = list(dictionaryDriver.values())
     FDriverEmail = DriverListVAlues[0]
-    print('Driver:', FDriverEmail)
     LorryReg = managerTVLorrieAssign.focus()
     dictionaryLorry = managerTVLorrieAssign.item(LorryReg)
     LorryListVAlues = list(dictionaryLorry.values())
     FLorryReg = LorryListVAlues[0]
-    print('lorry', FLorryReg)
 
-    # writing to orders FDriverEmail, FLorryReg
-    conn = sqlite3.connect('data.db')
-    c = conn.cursor()
-    sql = "UPDATE orders SET lorrieReg = (?), driverID = (?) WHERE orderID = (?)"
-    val = (FLorryReg, FDriverEmail, OrderNumber)
-    c.execute(sql, val)
-    conn.commit()
-    conn.close()
+    if FLorryReg == '':
+        messagebox.showerror('error', 'No lorry Selected')
+    elif FDriverEmail == '':
+        messagebox.showerror('error', 'No Driver Selected')
+    else:
 
-    # writing to drivers
-    conn = sqlite3.connect('data.db')
-    c = conn.cursor()
-    c.execute("UPDATE drivers SET avaliablity = 'No' WHERE email = (?)", (FDriverEmail,))
-    conn.commit()
-    conn.close()
+        # writing to orders FDriverEmail, FLorryReg
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        sql = "UPDATE orders SET lorrieReg = (?), driverID = (?) WHERE orderID = (?)"
+        val = (FLorryReg, FDriverEmail, OrderNumber)
+        c.execute(sql, val)
+        conn.commit()
+        conn.close()
 
-    # writting to lorry
-    # writing to drivers
-    conn = sqlite3.connect('data.db')
-    c = conn.cursor()
-    c.execute("UPDATE lorry SET avaliablity = 'No' WHERE reg = (?)", (FLorryReg,))
-    conn.commit()
-    conn.close()
-    ShowOrderTV()
+        # writing to drivers
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        c.execute("UPDATE drivers SET avaliablity = 'No' WHERE email = (?)", (FDriverEmail,))
+        conn.commit()
+        conn.close()
 
-    AssignFrame.destroy()
+        # writting to lorry
+        # writing to drivers
+        conn = sqlite3.connect('data.db')
+        c = conn.cursor()
+        c.execute("UPDATE lorry SET avaliablity = 'No' WHERE reg = (?)", (FLorryReg,))
+        conn.commit()
+        conn.close()
+        ShowOrderTV()
+
+        AssignFrame.destroy()
 
 
 def show_status(event):
@@ -918,10 +1036,39 @@ def ShowclientTVOrders():
     c = conn.cursor()
     clientTVOrders.delete(*clientTVOrders.get_children())
     c.execute(
-        "SELECT orderID, pickUpAddress, deliveryAddress, productID, lorrieReg, driverID FROM orders WHERE company = (?)",
+        "SELECT orderID, pickUpAddress, deliveryAddress, loadID, lorrieReg, driverID FROM orders WHERE company = (?)",
         (TheCompnay,))
     for row in c:
         clientTVOrders.insert('', 'end', text=row[0], values=row[1:6])
+    conn.commit()
+    conn.close()
+
+
+def ShowLoaderTV():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    LoaderTVProducts.delete(*LoaderTVProducts.get_children())
+    c.execute("SELECT * FROM products")
+    for row in c:
+        LoaderTVProducts.insert('', 'end', text=row[0], values=row[1:4])
+    conn.commit()
+    conn.close()
+
+
+def loaded():
+    loadID = random.randint(1, 1000)
+    OrderNum = LoaderTVProducts.focus()
+    print(OrderNum)
+    dictionaryOrder = LoaderTVProducts.item(OrderNum)
+    print(dictionaryOrder)
+    OrderlistValues = list(dictionaryOrder.values())
+    print('list', OrderlistValues)
+    FOrderNum = OrderlistValues[2]
+    FORderID = FOrderNum[0]
+    print(FOrderNum)
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE orders SET loadID = (?) WHERE orderID = (?)", (loadID, FORderID,))
     conn.commit()
     conn.close()
 
@@ -987,10 +1134,10 @@ CompanyC = StringVar()
 
 # orders
 SerTVOrders = StringVar()
-Company = StringVar()
+ProductName = StringVar()
 PickUp = StringVar()
 Delivery = StringVar()
-ProductID = StringVar()
+Quantity = StringVar()
 
 # driverorders
 global TheStatus
@@ -1013,10 +1160,12 @@ ManagerStaffFrame = Frame(root, bg='light grey')
 ManagerClassesFrame = Frame(root, bg='light grey')
 drivermenuframe = Frame(root, bg='light grey')
 clientmenuframe = Frame(root, bg='light grey')
+loadermenuframe = Frame(root, bg='light grey')
 
 for frame in (
         loginframe, create_account_frame, resetpasswordframe, membermenuframe, managermenuframe,
-        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash, drivermenuframe, clientmenuframe):
+        ManagerStaffFrame, ManagerClassesFrame, ManagerDriverFrameDash, drivermenuframe, clientmenuframe,
+        loadermenuframe):
     frame.grid(row=0, column=0, sticky='news')
 
 # styles
@@ -1105,6 +1254,8 @@ NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
 ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, textvariable=LableValueNew, font=60)
 ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
 
+ShowGraohButton = ttk.Button(managerWidgFrameDriverDash, text='Show Chart', command=CreateScoreBarChart)
+ShowGraohButton.grid(row=3, column=0)
 # ==================================================================================
 # ManagerDriverFrame
 # frames for ManagerDriverFrame
@@ -1498,30 +1649,6 @@ def do_popup_orders(event):
 
 managerTVOrders.bind("<Button-3>", do_popup_orders)
 
-# inputs orders
-CompanyLabel = ttk.Label(ManagerOrderInputsFrame, text='Company:')
-CompanyLabel.grid(row=0, column=0, padx=10)
-CompanyEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=Company)
-CompanyEntry.grid(row=0, column=1)
-
-PickUpLabel = ttk.Label(ManagerOrderInputsFrame, text='Pick Up:')
-PickUpLabel.grid(row=0, column=2, padx=10)
-PickUpEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=PickUp)
-PickUpEntry.grid(row=0, column=3)
-
-DeliveryLabel = ttk.Label(ManagerOrderInputsFrame, text='Delivery:')
-DeliveryLabel.grid(row=0, column=4, padx=10)
-DeliveryEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=Delivery)
-DeliveryEntry.grid(row=0, column=5)
-
-ProductIDLabel = ttk.Label(ManagerOrderInputsFrame, text='Product ID:')
-ProductIDLabel.grid(row=0, column=6, padx=10)
-ProductIDEntry = ttk.Entry(ManagerOrderInputsFrame, textvariable=ProductID)
-ProductIDEntry.grid(row=0, column=7)
-
-AddDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Add Order', command=AddOrder)
-AddDriverButton.grid(row=1, column=0, padx=10, pady=10)
-
 DelDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Delete Order', command=DelDriver)
 DelDriverButton.grid(row=1, column=2, padx=10, pady=10)
 
@@ -1597,6 +1724,9 @@ ClientOrderTVFrame.place(x=10, y=20)
 ClientOrderStatusFrame = Frame(clientOrdersFrame, bg='white')
 ClientOrderStatusFrame.place(x=850, y=30)
 
+ClientOrderInputsFrame = Frame(clientOrdersFrame, bg='white')
+ClientOrderInputsFrame.place(x=10, y=447)
+
 # tv
 clientTVOrders = ttk.Treeview(ClientOrderTVFrame, height=10,
                               columns=('First Name', 'Last Name', 'Column 2 ', 'Coulmn 3', '4'))
@@ -1623,11 +1753,83 @@ Clientstatuslabel.grid(row=0, column=0)
 Clientstatuslabel2 = ttk.Label(ClientOrderStatusFrame, textvariable=ClientTheStatus, font=20)
 Clientstatuslabel2.grid(row=0, column=1)
 
+# new order frame
+# clinets inputs
+# inputs orders
+PickUpLabel = ttk.Label(ClientOrderInputsFrame, text='Pick Up:')
+PickUpLabel.grid(row=0, column=0, padx=10)
+PickUpEntry = ttk.Entry(ClientOrderInputsFrame, textvariable=PickUp)
+PickUpEntry.grid(row=0, column=1)
+
+DeliveryLabel = ttk.Label(ClientOrderInputsFrame, text='Delivery:')
+DeliveryLabel.grid(row=0, column=2, padx=10)
+DeliveryEntry = ttk.Entry(ClientOrderInputsFrame, textvariable=Delivery)
+DeliveryEntry.grid(row=0, column=3)
+
+ProductLabel = ttk.Label(ClientOrderInputsFrame, text='Product Name:')
+ProductLabel.grid(row=0, column=4, padx=10)
+ProductEntry = ttk.Entry(ClientOrderInputsFrame, textvariable=ProductName)
+ProductEntry.grid(row=0, column=5)
+
+QuantityLabel = ttk.Label(ClientOrderInputsFrame, text='Quantity:')
+QuantityLabel.grid(row=0, column=6, padx=10)
+QuantityEntry = ttk.Entry(ClientOrderInputsFrame, textvariable=Quantity)
+QuantityEntry.grid(row=0, column=7)
+
+AddDriverButton = ttk.Button(ClientOrderInputsFrame, text='Add Order', command=AddOrder)
+AddDriverButton.grid(row=1, column=0, padx=10, pady=10)
+
 # ========================================================================================================
 # new order frame
 clientNewOrdersFrame = Frame(clientmenuframe, bg='white')
 clientNewOrdersFrame.place(x=60, y=90, width=1300, height=1000)
 
+clientNewOrdersInputsFrame = LabelFrame(clientNewOrdersFrame, text='order', bg='white')
+clientNewOrdersInputsFrame.place(x=10, y=447)
+
+ClinetProductTVFrame = Frame(clientNewOrdersFrame, bg='white')
+ClinetProductTVFrame.place(x=10, y=20)
+
+# tv
+# tv
+ClientTVProducts = ttk.Treeview(ClinetProductTVFrame, height=10,
+                                columns=('First Name', 'Last Name'))
+ClientTVProducts.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
+
+ClientTVProducts.heading('#0', text='Product ID')
+ClientTVProducts.column('#0', minwidth=0, width=130, anchor='center')
+ClientTVProducts.heading('#1', text='Name')
+ClientTVProducts.column('#1', minwidth=0, width=130, anchor='center')
+ClientTVProducts.heading('#2', text='Quantity')
+ClientTVProducts.column('#2', minwidth=0, width=130, anchor='center')
+
+# ==========================================================================================================
+# laodermenuframe
+# frames
+loaderOrdersFrame = Frame(loadermenuframe, bg='white')
+loaderOrdersFrame.place(x=60, y=90, width=1300, height=1000)
+
+OrderProductTVFrame = Frame(loaderOrdersFrame, bg='white')
+OrderProductTVFrame.place(x=10, y=20)
+
+# tv
+LoaderTVProducts = ttk.Treeview(OrderProductTVFrame, height=10,
+                                columns=('First Name', 'Last Name', '2', '3'))
+LoaderTVProducts.grid(row=0, column=0, columnspan=30, pady=10, padx=10)
+
+LoaderTVProducts.heading('#0', text='Product ID')
+LoaderTVProducts.column('#0', minwidth=0, width=130, anchor='center')
+LoaderTVProducts.heading('#1', text='Order ID')
+LoaderTVProducts.column('#1', minwidth=0, width=130, anchor='center')
+LoaderTVProducts.heading('#2', text='Company')
+LoaderTVProducts.column('#2', minwidth=0, width=130, anchor='center')
+LoaderTVProducts.heading('#3', text='Product Name')
+LoaderTVProducts.column('#3', minwidth=0, width=130, anchor='center')
+LoaderTVProducts.heading('#4', text='Quantity')
+LoaderTVProducts.column('#4', minwidth=0, width=130, anchor='center')
+
+loadedbutton = ttk.Button(OrderProductTVFrame, text='loaded', command=loaded)
+loadedbutton.grid(row=0, column=1)
 # ==========================================================================================================
 # top menu manager
 labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
@@ -1759,6 +1961,50 @@ frame3.bind('<Leave>', lambda e: contract3())
 
 # So that it does not depend on the widgets inside the frame
 frame3.grid_propagate(False)
+
+# ==========================================================================================================
+# top menu loader
+labelframe5 = Frame(loadermenuframe, bg='#0E2B4D')
+labelframe5.grid(row=0, column=0, columnspan=3, sticky=NW)
+
+photoloadermenuscreen = PhotoImage(file='white-footer-logo.png')
+photolabelloader = Label(labelframe5, image=photoclientmenuscreen, bg='#0E2B4D')
+photolabelloader.grid(row=0, column=0, sticky=NW, pady=5)
+
+username_labelloader = Label(labelframe5, text='loader              ', font=40, fg='white', bg='#0E2B4D')
+username_labelloader.grid(row=0, column=2, padx=370)
+
+loaderMemberClockLabel = Label(labelframe5, bg='#0E2B4D', fg='white', font='bold')
+loaderMemberClockLabel.grid(row=0, column=4, padx=10)
+
+LOGoutButtonloader = Button(labelframe5, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtonloader.grid(row=0, column=5, ipady=30, ipadx=10)
+
+# side menu laoder
+home4 = ImageTk.PhotoImage(Image.open('home.png').resize((50, 50), Image.ANTIALIAS))
+settings4 = ImageTk.PhotoImage(Image.open('group.png').resize((50, 50), Image.ANTIALIAS))
+ring4 = ImageTk.PhotoImage(Image.open('speedometer.png').resize((50, 50), Image.ANTIALIAS))
+
+root.update()  # For the width to get updated
+frame4 = Frame(loadermenuframe, bg='#0E2B4D', width=60, height=root.winfo_height())
+frame4.grid(row=1, column=0, sticky=NW, rowspan=4)
+
+# Make the buttons with the icons to be shown
+home_b4 = Button(frame4, image=home4, bg='#0E2B4D', command=ClientOrders, relief='flat')
+set_b4 = Button(frame4, image=settings4, bg='#0E2B4D', command=Neworder, relief='flat')
+ring_b4 = Button(frame4, image=ring4, bg='#0E2B4D', command=MangerOrders, relief='flat')
+
+# Put them on the frame
+home_b4.grid(row=0, column=0, pady=10)
+set_b4.grid(row=1, column=0, pady=50)
+ring_b4.grid(row=2, column=0)
+
+# Bind to the frame, if entered or left
+frame4.bind('<Enter>', lambda e: expand3())
+frame4.bind('<Leave>', lambda e: contract3())
+
+# So that it does not depend on the widgets inside the frame
+frame4.grid_propagate(False)
 
 raise_frame(loginframe)
 root.mainloop()
