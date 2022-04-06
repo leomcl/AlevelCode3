@@ -17,6 +17,7 @@ from time import strftime
 from PIL import Image, ImageTk
 import validation
 import matplotlib.pyplot as plt
+import GmapsAPI
 
 # hello
 
@@ -196,12 +197,14 @@ def MangerMenu():
 
 def DriverMenu():
     # timedriverscreen()
+    UpdateOrderAssigned()
     ShowdriverOrderTv()
     raise_frameDriver(drivermenuframe)
     root.geometry('1400x800')
 
 
 def ClientMenu():
+    UpdateOrderAssigned()
     ShowclientTVOrders()
     raise_frameClient(clientmenuframe)
     root.geometry('1400x800')
@@ -214,19 +217,23 @@ def LoaderMenu():
 
 
 def ClientOrders():
+    UpdateOrderAssigned()
     ShowclientTVOrders()
     raise_frameClient(clientOrdersFrame)
 
 
 def ManagerDriver():
     raise_frame(ManagerDriverFrame)
+    ShowDriverPreformaceTV()
     ShowDriverTV()
     UpdateDriverMangerWidg()
 
 
 def MangerOrders():
-    raise_frame(ManagerOrderFrame)
+    UpdateOrderAssigned()
     ShowOrderTV()
+    raise_frame(ManagerOrderFrame)
+
 
 
 def ManagerLoader():
@@ -427,6 +434,9 @@ def AddDriver():
         val = (Femail, Ffirstname, Flastname, 0, "Yes")
         mycursor.execute(sql, val)
         mycursor.execute("INSERT INTO passwords (username, password, type) VALUES (?, ?, ?)", (Femail, password, type))
+        sql2 = "INSERT INTO driverPreformace (email, newLate, totalLate) VALUES (?, ?, ?)"
+        val2 = (Femail, 0, 0)
+        mycursor.execute(sql2, val2)
         conn.commit()
         conn.close()
 
@@ -490,11 +500,11 @@ def ShowDriverPreformaceTV():
         c = conn.cursor()
         managerDriverPrefTVDriver.delete(*managerDriverPrefTVDriver.get_children())
         c.execute("SELECT * FROM driverPreformace")
-        conn.commit()
-        conn.close()
         for row in c:
             managerDriverPrefTVDriver.insert('', 'end', text=row[0], values=row[1:3])
         print(c)
+        conn.commit()
+        conn.close()
 
     elif FinialSerTV == 'New Lates':
         conn = sqlite3.connect('data.db')
@@ -506,6 +516,28 @@ def ShowDriverPreformaceTV():
         print(c)
         conn.commit()
         conn.close()
+
+
+def UpdateOrderAssigned():
+    AmountAssigned = 0
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM orders WHERE lorrieReg != 'None'")
+    for row in c:
+        AmountAssigned += 1
+    LabelAssigned.set(AmountAssigned)
+    conn.commit()
+    conn.close()
+
+    AmountNot = 0
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM orders WHERE lorrieReg = 'None'")
+    for row in c:
+        AmountNot += 1
+    LabelUnAssigned.set(AmountNot)
+    conn.commit()
+    conn.close()
 
 
 def UpdateDriverMangerWidg():
@@ -549,6 +581,17 @@ def CreateScoreBarChart():
     print(int(fAmountNo))
     plt.bar(fullnames, scores, align="center", alpha=0.5, color=['b'])
     plt.xticks(fullnames, fullnames)
+    plt.show()
+
+def ShowOrdersAssignedChart():
+    subjects = 'Not Assigned', 'Assigned'
+    FUnAssigned = LabelUnAssigned.get()
+    FAssinged = LabelAssigned.get()
+    values = int(FUnAssigned), int(FAssinged)
+    print(values)
+    plt.pie(values, labels=subjects, colors=['r', 'g'], autopct='%1.1f%%')
+    plt.title("Number Assigned and Not Assigned Orders")
+    plt.axis('equal')
     plt.show()
 
 
@@ -614,8 +657,6 @@ def AddLoader():
             server.quit()
             print('email sent')
             messagebox.showinfo('Info', 'Added ')
-            raise_frame(resetpasswordframe)
-            resetpasswordframe.geometry('500x500')
 
         except:
             print('Email not sent')
@@ -1003,6 +1044,57 @@ def OutForDelivery():
 
 
 def Delivered():
+    UpdateDeliveredStat()
+    OrderNum = driverTVOrders.focus()
+    dictionaryOrder = driverTVOrders.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[0]
+    print(FOrderNum)
+    # get times
+    Hour = simpledialog.askinteger('Time', 'Hours:')
+    Min = simpledialog.askinteger('Time', 'Min:')
+
+    # change into secods
+    HourSecs = Hour * 3600
+    MinSeconds = Min * 60
+    seconds = HourSecs + MinSeconds
+    print(seconds)
+
+    # get estimated time
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT pickupAddress, deliveryAddress FROM orders WHERE orderID = (?)", (FOrderNum,))
+    for row in c:
+        pickUp = row[0]
+        delivery = row[1]
+    conn.commit()
+    conn.close()
+
+    if GmapsAPI.estimatedTime(pickUp, delivery) < seconds:
+        UpdateDriverPreofmaceLate()
+    else:
+        print('Ontime')
+
+
+def UpdateDriverPreofmaceLate():
+    print(Finialusername)
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT totalLate FROM driverPreformace WHERE email = (?)", (Finialusername,))
+    for row in c:
+        totalLate = row[0]
+    conn.commit()
+    conn.close()
+    newTotalLate = int(totalLate) + 1
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("UPDATE driverPreformace SET totalLate = (?) WHERE email = (?)", (newTotalLate, Finialusername,))
+    c.execute("UPDATE driverPreformace SET newLate = '1' WHERE email = (?)", (Finialusername,))
+    conn.commit()
+    conn.close()
+
+
+def UpdateDeliveredStat():
     OrderNum = driverTVOrders.focus()
     dictionaryOrder = driverTVOrders.item(OrderNum)
     OrderlistValues = list(dictionaryOrder.values())
@@ -1050,7 +1142,7 @@ def ShowLoaderTV():
     LoaderTVProducts.delete(*LoaderTVProducts.get_children())
     c.execute("SELECT * FROM products")
     for row in c:
-        LoaderTVProducts.insert('', 'end', text=row[0], values=row[1:4])
+        LoaderTVProducts.insert('', 'end', text=row[0], values=row[1:5])
     conn.commit()
     conn.close()
 
@@ -1090,6 +1182,67 @@ class UserButtons():
 
         userClientButton = Button(self.userButtonsFrame, text='Client', command=ManagerClient)
         userClientButton.grid(row=0, column=3, ipadx=15, ipady=5)
+
+
+class driverAvaliableWidg():
+    def __init__(self):
+        self.managerWidgFrameDriverDash = None
+
+    def showElements(self, root, x, y):
+        self.managerWidgFrameDriverDash = LabelFrame(root, bg='white', pady=5, padx=5)
+        self.managerWidgFrameDriverDash.place(x=x, y=y)
+        self.managerWidgFrameDriverDash.configure(bg='white')
+
+        AvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='Available Drivers: ', font=60)
+        AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
+
+        ValueAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueYes,
+                                                    font=60)
+        ValueAvliableDriverwidigitLable.grid(row=0, column=1, padx=40, pady=10)
+
+        UnAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='Unavailable Drivers: ', font=60)
+        UnAvliableDriverwidigitLable.grid(row=1, column=0, padx=40, pady=10)
+
+        ValueNoAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueNo,
+                                                      font=60)
+        ValueNoAvliableDriverwidigitLable.grid(row=1, column=1, padx=40, pady=10)
+
+        NewLatesDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='New Lates:', font=60)
+        NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
+
+        ValueNewAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueNew,
+                                                       font=60)
+        ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
+
+        ShowGraohButton = ttk.Button(self.managerWidgFrameDriverDash, text='Show Chart', command=CreateScoreBarChart)
+        ShowGraohButton.grid(row=3, column=0)
+
+
+class ordersAssignedWidg():
+    def __init__(self):
+        self.managerWidgOrdersDash = None
+
+    def showElements(self, root, x, y):
+        self.managerWidgOrdersDash = LabelFrame(root, bg='white', pady=5, padx=5)
+        self.managerWidgOrdersDash.place(x=x, y=y)
+        self.managerWidgOrdersDash.configure(bg='white')
+
+        AssignedwidigitLable = ttk.Label(self.managerWidgOrdersDash, text='Assigned: ', font=60)
+        AssignedwidigitLable.grid(row=0, column=0, padx=40, pady=10)
+
+        ValueAssignedwidigitLable = ttk.Label(self.managerWidgOrdersDash, textvariable=LabelAssigned,
+                                              font=60)
+        ValueAssignedwidigitLable.grid(row=0, column=1, padx=40, pady=10)
+
+        UnAssignedwidigitLable = ttk.Label(self.managerWidgOrdersDash, text='Not Assigned: ', font=60)
+        UnAssignedwidigitLable.grid(row=1, column=0, padx=40, pady=10)
+
+        ValueUnAssignedwidigitLable = ttk.Label(self.managerWidgOrdersDash, textvariable=LabelUnAssigned,
+                                                font=60)
+        ValueUnAssignedwidigitLable.grid(row=1, column=1, padx=40, pady=10)
+
+        ShowChartButton = ttk.Button(self.managerWidgOrdersDash, text='Show Chart', command=ShowOrdersAssignedChart)
+        ShowChartButton.grid(row=2, column=0)
 
 
 root = ThemedTk(theme='yaru')
@@ -1138,6 +1291,10 @@ ProductName = StringVar()
 PickUp = StringVar()
 Delivery = StringVar()
 Quantity = StringVar()
+
+# widigits
+LabelAssigned = StringVar()
+LabelUnAssigned = StringVar()
 
 # driverorders
 global TheStatus
@@ -1235,27 +1392,11 @@ managerWidgFrameDriverDash.configure(bg='white')
 
 # ======================================================================================
 # drivers dashboard
-# labels
-AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, text='Available Drivers: ', font=60)
-AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
+ManagerDriverWidg = driverAvaliableWidg()
+ManagerDriverWidg.showElements(managerDashFrame, 20, 20)
 
-ValueAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, textvariable=LableValueYes, font=60)
-ValueAvliableDriverwidigitLable.grid(row=0, column=1, padx=40, pady=10)
-
-UnAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, text='Unavailable Drivers: ', font=60)
-UnAvliableDriverwidigitLable.grid(row=1, column=0, padx=40, pady=10)
-
-ValueNoAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, textvariable=LableValueNo, font=60)
-ValueNoAvliableDriverwidigitLable.grid(row=1, column=1, padx=40, pady=10)
-
-NewLatesDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, text='New Lates:', font=60)
-NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
-
-ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriverDash, textvariable=LableValueNew, font=60)
-ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
-
-ShowGraohButton = ttk.Button(managerWidgFrameDriverDash, text='Show Chart', command=CreateScoreBarChart)
-ShowGraohButton.grid(row=3, column=0)
+OrdersWidg2 = ordersAssignedWidg()
+OrdersWidg2.showElements(managerDashFrame, 20, 400)
 # ==================================================================================
 # ManagerDriverFrame
 # frames for ManagerDriverFrame
@@ -1269,10 +1410,6 @@ managerTVFrameDriver.configure(bg='white')
 managerInputsFrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
 managerInputsFrameDriver.place(x=10, y=447)
 managerInputsFrameDriver.configure(bg='white')
-
-managerWidgFrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
-managerWidgFrameDriver.place(x=750, y=420)
-managerWidgFrameDriver.configure(bg='white')
 
 managerPreoformacesrameDriver = LabelFrame(ManagerDriverFrame, bg='white', pady=5, padx=5)
 managerPreoformacesrameDriver.place(x=750, y=60)
@@ -1343,26 +1480,9 @@ EmailDriverButton = ttk.Button(managerInputsFrameDriver, text='Send Email', comm
 EmailDriverButton.grid(row=1, column=4, padx=10, pady=10)
 
 # widgits on ManagerDriverFrame
-AvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Available Drivers: ', font=60)
-AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
 
-ValueAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueYes, font=60)
-ValueAvliableDriverwidigitLable.grid(row=0, column=1, padx=40, pady=10)
-
-UnAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='Unavailable Drivers: ', font=60)
-UnAvliableDriverwidigitLable.grid(row=1, column=0, padx=40, pady=10)
-
-ValueNoAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueNo, font=60)
-ValueNoAvliableDriverwidigitLable.grid(row=1, column=1, padx=40, pady=10)
-
-NewLatesDriverwidigitLable = ttk.Label(managerWidgFrameDriver, text='New Lates:', font=60)
-NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
-
-ValueNewAvliableDriverwidigitLable = ttk.Label(managerWidgFrameDriver, textvariable=LableValueNew, font=60)
-ValueNewAvliableDriverwidigitLable.grid(row=2, column=1, padx=40, pady=10)
-
-SerTVperformacesLabelD = ttk.Label(managerPreoformacesrameDriver, text='Show:', font=13)
-SerTVperformacesLabelD.grid(row=0, column=0, padx=17)
+ManagerDriverWidg2 = driverAvaliableWidg()
+ManagerDriverWidg2.showElements(ManagerDriverFrame, 750, 420)
 
 SearchOptions = [
     "New Lates",
@@ -1649,8 +1769,8 @@ def do_popup_orders(event):
 
 managerTVOrders.bind("<Button-3>", do_popup_orders)
 
-DelDriverButton = ttk.Button(ManagerOrderInputsFrame, text='Delete Order', command=DelDriver)
-DelDriverButton.grid(row=1, column=2, padx=10, pady=10)
+OrdersWidg = ordersAssignedWidg()
+OrdersWidg.showElements(ManagerOrderFrame, 20, 400)
 
 # ==========================================================================================================
 # drivermenuframe
@@ -1662,10 +1782,14 @@ DriverOrderTVFrame = Frame(driverOrdersFrame, bg='white')
 DriverOrderTVFrame.place(x=10, y=20)
 
 DriverOrderStatusFrame = Frame(driverOrdersFrame, bg='white')
-DriverOrderStatusFrame.place(x=850, y=30)
+DriverOrderStatusFrame.place(x=10, y=400)
 
 DriverOrderButtonFrame = Frame(driverOrdersFrame, bg='white')
 DriverOrderButtonFrame.place(x=10, y=500)
+
+# widg
+OrdersWidg3 = ordersAssignedWidg()
+OrdersWidg3.showElements(driverOrdersFrame, 850, 20)
 
 # tv
 driverTVOrders = ttk.Treeview(DriverOrderTVFrame, height=10,
@@ -1722,7 +1846,10 @@ ClientOrderTVFrame = Frame(clientOrdersFrame, bg='white')
 ClientOrderTVFrame.place(x=10, y=20)
 
 ClientOrderStatusFrame = Frame(clientOrdersFrame, bg='white')
-ClientOrderStatusFrame.place(x=850, y=30)
+ClientOrderStatusFrame.place(x=20, y=400)
+
+OrdersWidg3 = ordersAssignedWidg()
+OrdersWidg3.showElements(clientOrdersFrame, 850, 30)
 
 ClientOrderInputsFrame = Frame(clientOrdersFrame, bg='white')
 ClientOrderInputsFrame.place(x=10, y=447)
@@ -1829,7 +1956,7 @@ LoaderTVProducts.heading('#4', text='Quantity')
 LoaderTVProducts.column('#4', minwidth=0, width=130, anchor='center')
 
 loadedbutton = ttk.Button(OrderProductTVFrame, text='loaded', command=loaded)
-loadedbutton.grid(row=0, column=1)
+loadedbutton.grid(row=1, column=1)
 # ==========================================================================================================
 # top menu manager
 labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
