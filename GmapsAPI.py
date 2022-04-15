@@ -12,10 +12,10 @@ def estimatedTime(address1, address2):
     r = requests.get(url + "origins=" + address1 + "&destinations=" + address2 + "&key=" + api_key)
 
     # return time as text and as seconds
-    time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
+    #time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
     seconds = r.json()["rows"][0]["elements"][0]["duration"]["value"]
 
-    print(time)
+    #print(time)
     print(seconds)
 
     return seconds

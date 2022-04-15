@@ -3,6 +3,8 @@ import tkinter.simpledialog as simpledialog
 from tkinter import messagebox, LabelFrame
 import tkinter as tk
 from tkinter import ttk
+from tkinter.ttk import Label
+
 from ttkthemes import ThemedTk
 import sqlite3
 import smtplib
@@ -124,7 +126,7 @@ def fill3():
     if expanded:  # If the frame is exanded
         # Show a text, and remove the image
         home_b3.config(text='Orders', image='', font=(0, 21), fg='white')
-        set_b3.config(text='New', image='', font=(0, 21), fg='white')
+        set_b3.config(text='Products', image='', font=(0, 21), fg='white')
         ring_b3.config(text='client', image='', font=(0, 21), fg='white')
     else:
         # Bring the image back
@@ -204,6 +206,7 @@ def DriverMenu():
 
 
 def ClientMenu():
+    ShowClientTVProducts()
     UpdateOrderAssigned()
     ShowclientTVOrders()
     raise_frameClient(clientmenuframe)
@@ -235,7 +238,6 @@ def MangerOrders():
     raise_frame(ManagerOrderFrame)
 
 
-
 def ManagerLoader():
     raise_frame(ManagerLoaderFrame)
     ShowLoaderTV()
@@ -247,6 +249,7 @@ def ManagerClient():
 
 
 def Neworder():
+    ShowClientTVProducts()
     raise_frameClient(clientNewOrdersFrame)
 
 
@@ -276,6 +279,8 @@ def login():
     print(Finialpassword, Finialusername)
     if validation.presenceCheck(Finialusername) is False:
         messagebox.showwarning('', 'Presnce Username')
+    elif len(Finialpassword) < 8:
+        messagebox.showwarning('', 'Password must be longer than 8 characters')
     elif validation.presenceCheck(Finialpassword) is False:
         messagebox.showwarning('', 'Presnsce password')
     elif validation.emailCheck(Finialusername) is False:
@@ -295,16 +300,12 @@ def login():
         for row in reader:
             if row[2] == Finialpassword and row[3] == 'driver':
                 DriverMenu()
-                print('driver')
             elif row[2] == Finialpassword and row[3] == 'client':
                 ClientCompany()
-                print('clinent')
             elif row[2] == Finialpassword and row[3] == 'loader':
                 LoaderMenu()
-                print('driver')
             elif row[2] == Finialpassword and row[3] == 'customs':
                 MangerLogin()
-                print('customs')
             else:
                 messagebox.showinfo("Info", "Incorect password", icon="info")
 
@@ -332,32 +333,31 @@ def forgot_password():
     c = conn.cursor()
     c.execute("SELECT rowid, * from passwords WHERE username = (?)", (email,))
     reader = c.fetchall()
-    conn.commit()
-    conn.close()
     print(reader)
+    if reader == '[]':
+        messagebox.showwarning('error,', 'invalid email')
+    else:
+        for row in reader:
+            if email != row[1]:
+                messagebox.showinfo('Email Error', 'This account does not exist')
+            else:
+                try:
+                    server = smtplib.SMTP('smtp.gmail.com:587')
+                    server.ehlo()
+                    server.starttls()
+                    server.login(config.emailAddress, config.password)
+                    server.sendmail(config.emailAddress, email, text)
+                    server.quit()
+                    print('email sent')
+                    messagebox.showinfo('Email sent', 'Code sent in email.')
+                    raise_frame(resetpasswordframe)
+                    resetpasswordframe.geometry('500x500')
 
-    for row in reader:
-        if email != row[1]:
-            messagebox.showinfo('Email Error', 'This account does not exist')
+                except:
+                    print('Email not sent')
 
-        else:
-            try:
-                server = smtplib.SMTP('smtp.gmail.com:587')
-                server.ehlo()
-                server.starttls()
-                server.login(config.emailAddress, config.password)
-                server.sendmail(config.emailAddress, email, text)
-                server.quit()
-                print('email sent')
-                messagebox.showinfo('Email sent', 'Code sent in email.')
-                raise_frame(resetpasswordframe)
-                resetpasswordframe.geometry('500x500')
-
-            except:
-                print('Email not sent')
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
 
 def ResetPassword():
@@ -367,7 +367,8 @@ def ResetPassword():
 
     print(number, FinialOTPcode)
     if len(FinialNewPassword) < 8:
-        print('Invalid password')
+        messagebox.showinfo('Password Reset',
+                            'Password is invalid. Must be over 8 charcters')
     else:
         if str(FinialOTPcode) == str(number) and FinialNewPassword2 == FinialNewPassword:
             value = (FinialNewPassword, email)
@@ -388,7 +389,7 @@ def ResetPassword():
             messagebox.showinfo('Invalid password Error', 'New password must match confirm password')
 
         else:
-            messagebox.showinfo('Invalid Error', 'Error password does not match confirm password try again')
+            messagebox.showinfo('', 'Password reset')
             FinialOTPcode.set('')
             FinialNewPassword.set('')
             FinialNewPassword2.set('')
@@ -416,7 +417,7 @@ def AddDriver():
     if validation.presenceCheck(Ffirstname) is False:
         messagebox.showwarning()
     elif validation.emailCheck(Femail) is False:
-        messagebox.showwarning()
+        messagebox.showwarning('error', 'Email Invalid')
     elif validation.presenceCheck(Flastname) is False:
         messagebox.showwarning()
     elif validation.presenceCheck(Femail) is False:
@@ -583,6 +584,7 @@ def CreateScoreBarChart():
     plt.xticks(fullnames, fullnames)
     plt.show()
 
+
 def ShowOrdersAssignedChart():
     subjects = 'Not Assigned', 'Assigned'
     FUnAssigned = LabelUnAssigned.get()
@@ -617,7 +619,7 @@ def AddLoader():
     if validation.presenceCheck(Ffirstname) is False:
         messagebox.showwarning()
     elif validation.emailCheck(Femail) is False:
-        messagebox.showwarning()
+        messagebox.showwarning('error', 'Email Invalid')
     elif validation.presenceCheck(Flastname) is False:
         messagebox.showwarning()
     elif validation.presenceCheck(Femail) is False:
@@ -710,7 +712,7 @@ def AddClient():
     if validation.presenceCheck(Ffirstname) is False:
         messagebox.showwarning()
     elif validation.emailCheck(Femail) is False:
-        messagebox.showwarning()
+        messagebox.showwarning('error', 'Email Invalid')
     elif validation.presenceCheck(Flastname) is False:
         messagebox.showwarning()
     elif validation.presenceCheck(Femail) is False:
@@ -851,7 +853,6 @@ def DeleteOrder():
 
 def ShowOrderTV():
     FinialSerTVOrder = SerTVOrders.get()
-    print(FinialSerTVOrder)
     if FinialSerTVOrder == 'All':
         conn = sqlite3.connect('data.db')
         c = conn.cursor()
@@ -859,7 +860,6 @@ def ShowOrderTV():
         c.execute("SELECT * FROM orders")
         for row in c:
             managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
-        print(c)
         conn.commit()
         conn.close()
 
@@ -870,7 +870,6 @@ def ShowOrderTV():
         c.execute("SELECT * FROM orders WHERE lorrieReg != 'None'")
         for row in c:
             managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
-        print(c)
         conn.commit()
         conn.close()
 
@@ -881,7 +880,6 @@ def ShowOrderTV():
         c.execute("SELECT * FROM orders WHERE lorrieReg = 'None'")
         for row in c:
             managerTVOrders.insert('', 'end', text=row[0], values=row[1:7])
-        print(c)
         conn.commit()
         conn.close()
 
@@ -1030,6 +1028,39 @@ def show_statusClient(event):
     ClientTheStatus.set(status)
 
 
+def ShowProductorderDetails(event):
+    fPickUpValue = ''
+    fDeliveryValue = ''
+    fLoadIDvalue = ''
+    fLorryRegvalue = ''
+    fdriverIDvalue = ''
+    OrderNum = ClientTVProducts.focus()
+    dictionaryOrder = ClientTVProducts.item(OrderNum)
+    OrderlistValues = list(dictionaryOrder.values())
+    FOrderNum = OrderlistValues[2]
+    print('list', OrderlistValues[2])
+    FFOrderNum = FOrderNum[0]
+    print('num', FFOrderNum)
+    status = ''
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM orders WHERE orderID = (?)", (FFOrderNum,))
+    for row in c:
+        fPickUpValue = row[2]
+        fDeliveryValue = row[3]
+        fLoadIDvalue = row[4]
+        fLorryRegvalue = row[5]
+        fdriverIDvalue = row[6]
+    conn.commit()
+    conn.close()
+
+    PickUpValue.set(fPickUpValue)
+    DeliveryValue.set(fDeliveryValue)
+    LoadIDvalue.set(fLoadIDvalue)
+    LorryRegvalue.set(fLorryRegvalue)
+    driverIDvalue.set(fdriverIDvalue)
+
+
 def OutForDelivery():
     OrderNum = driverTVOrders.focus()
     dictionaryOrder = driverTVOrders.item(OrderNum)
@@ -1044,6 +1075,7 @@ def OutForDelivery():
 
 
 def Delivered():
+    messagebox.showwarning('Error', 'Status Updated')
     UpdateDeliveredStat()
     OrderNum = driverTVOrders.focus()
     dictionaryOrder = driverTVOrders.item(OrderNum)
@@ -1054,7 +1086,7 @@ def Delivered():
     Hour = simpledialog.askinteger('Time', 'Hours:')
     Min = simpledialog.askinteger('Time', 'Min:')
 
-    # change into secods
+    # change into seconds
     HourSecs = Hour * 3600
     MinSeconds = Min * 60
     seconds = HourSecs + MinSeconds
@@ -1072,8 +1104,9 @@ def Delivered():
 
     if GmapsAPI.estimatedTime(pickUp, delivery) < seconds:
         UpdateDriverPreofmaceLate()
+        messagebox.showinfo('Message', 'Late, Delivery Recorded')
     else:
-        print('Ontime')
+        messagebox.showinfo('Message', 'Ontime, Delivery Recorded')
 
 
 def UpdateDriverPreofmaceLate():
@@ -1147,7 +1180,19 @@ def ShowLoaderTV():
     conn.close()
 
 
+def ShowClientTVProducts():
+    conn = sqlite3.connect('data.db')
+    c = conn.cursor()
+    ClientTVProducts.delete(*ClientTVProducts.get_children())
+    c.execute("SELECT productID, orderID, productName, quantity FROM products WHERE company = (?)", (TheCompnay,))
+    for row in c:
+        ClientTVProducts.insert('', 'end', text=row[0], values=row[1:4])
+    conn.commit()
+    conn.close()
+
+
 def loaded():
+    messagebox.showwarning('error', 'laoded')
     loadID = random.randint(1, 1000)
     OrderNum = LoaderTVProducts.focus()
     print(OrderNum)
@@ -1193,22 +1238,23 @@ class driverAvaliableWidg():
         self.managerWidgFrameDriverDash.place(x=x, y=y)
         self.managerWidgFrameDriverDash.configure(bg='white')
 
-        AvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='Available Drivers: ', font=60)
-        AvliableDriverwidigitLable.grid(row=0, column=0, padx=40, pady=10)
+        AvailablePrestidigitatorLabel = ttk.Label(self.managerWidgFrameDriverDash, text='Available Drivers: ', font=60)
+        AvailablePrestidigitatorLabel.grid(row=0, column=0, padx=40, pady=10)
 
-        ValueAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueYes,
+        ValueAvailablePrestidigitatorLabel = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueYes,
+                                                       font=60)
+        ValueAvailablePrestidigitatorLabel.grid(row=0, column=1, padx=40, pady=10)
+
+        UnAvailablePrestidigitatorLabel = ttk.Label(self.managerWidgFrameDriverDash, text='Unavailable Drivers: ',
                                                     font=60)
-        ValueAvliableDriverwidigitLable.grid(row=0, column=1, padx=40, pady=10)
+        UnAvailablePrestidigitatorLabel.grid(row=1, column=0, padx=40, pady=10)
 
-        UnAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='Unavailable Drivers: ', font=60)
-        UnAvliableDriverwidigitLable.grid(row=1, column=0, padx=40, pady=10)
+        ValueNoAvailablePrestidigitatorLabel = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueNo,
+                                                         font=60)
+        ValueNoAvailablePrestidigitatorLabel.grid(row=1, column=1, padx=40, pady=10)
 
-        ValueNoAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueNo,
-                                                      font=60)
-        ValueNoAvliableDriverwidigitLable.grid(row=1, column=1, padx=40, pady=10)
-
-        NewLatesDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, text='New Lates:', font=60)
-        NewLatesDriverwidigitLable.grid(row=2, column=0, padx=40, pady=10)
+        NewLatesDriverwidigitLabel = ttk.Label(self.managerWidgFrameDriverDash, text='New Lates:', font=60)
+        NewLatesDriverwidigitLabel.grid(row=2, column=0, padx=40, pady=10)
 
         ValueNewAvliableDriverwidigitLable = ttk.Label(self.managerWidgFrameDriverDash, textvariable=LableValueNew,
                                                        font=60)
@@ -1245,9 +1291,12 @@ class ordersAssignedWidg():
         ShowChartButton.grid(row=2, column=0)
 
 
+# ============================================================================
+
+
 root = ThemedTk(theme='yaru')
 root.geometry('800x600')
-root.title('Logistyics App')
+root.title('Hannon App')
 root.configure(background='white')
 
 # ============================================================================
@@ -1296,6 +1345,13 @@ Quantity = StringVar()
 LabelAssigned = StringVar()
 LabelUnAssigned = StringVar()
 
+# client product
+PickUpValue = StringVar()
+DeliveryValue = StringVar()
+LoadIDvalue = StringVar()
+LorryRegvalue = StringVar()
+driverIDvalue = StringVar()
+
 # driverorders
 global TheStatus
 TheStatus = StringVar()
@@ -1335,7 +1391,7 @@ s2.configure('menu.TButton', font=12, bg='white', fg='blue')
 # compoents
 # log in frame
 photologinscreen = PhotoImage(file='Hannon-Transport.png')
-photolabel = Label(loginframe, image=photologinscreen, bg='white')
+photolabel = Label(loginframe, image=photologinscreen)
 photolabel.grid(row=0, column=0, sticky=N, columnspan=6)
 
 username_label = ttk.Label(loginframe, text='Username:', font=18)
@@ -1357,7 +1413,7 @@ forgot_password_button.grid(row=3, column=3, pady=10)
 # ============================================================================================
 # resetpasswordframe
 photologinforgotscreen = PhotoImage(file='Hannon-Transport.png')
-photolabel2 = Label(resetpasswordframe, image=photologinforgotscreen, bg='white')
+photolabel2 = Label(resetpasswordframe, image=photologinforgotscreen)
 photolabel2.grid(row=0, column=0, sticky=NW, columnspan=6)
 
 Code_label1 = ttk.Label(resetpasswordframe, text='Code:', font=18)
@@ -1917,19 +1973,50 @@ clientNewOrdersInputsFrame.place(x=10, y=447)
 ClinetProductTVFrame = Frame(clientNewOrdersFrame, bg='white')
 ClinetProductTVFrame.place(x=10, y=20)
 
+ClinetProductDetailsFrame = Frame(clientNewOrdersFrame, bg='white')
+ClinetProductDetailsFrame.place(x=600, y=30)
+
 # tv
 # tv
 ClientTVProducts = ttk.Treeview(ClinetProductTVFrame, height=10,
-                                columns=('First Name', 'Last Name'))
+                                columns=('First Name', 'Last Name', 1))
 ClientTVProducts.grid(row=2, column=0, columnspan=30, pady=10, padx=10)
 
 ClientTVProducts.heading('#0', text='Product ID')
 ClientTVProducts.column('#0', minwidth=0, width=130, anchor='center')
-ClientTVProducts.heading('#1', text='Name')
+ClientTVProducts.heading('#1', text='Order ID')
 ClientTVProducts.column('#1', minwidth=0, width=130, anchor='center')
-ClientTVProducts.heading('#2', text='Quantity')
+ClientTVProducts.heading('#2', text='Name')
 ClientTVProducts.column('#2', minwidth=0, width=130, anchor='center')
+ClientTVProducts.heading('#3', text='Quantity')
+ClientTVProducts.column('#3', minwidth=0, width=130, anchor='center')
 
+ClientTVProducts.bind("<Button-1>", ShowProductorderDetails)
+
+pickUpAddresLabel = ttk.Label(ClinetProductDetailsFrame, text='Pick Up:', font=20)
+pickUpAddresLabel.grid(row=0, column=0)
+pickUpAddresLabelValue = ttk.Label(ClinetProductDetailsFrame, textvariable=PickUpValue, font=20)
+pickUpAddresLabelValue.grid(row=0, column=1)
+
+deliveryAddressLable = ttk.Label(ClinetProductDetailsFrame, text='Delivery:', font=20)
+deliveryAddressLable.grid(row=1, column=0)
+deliveryAddressLableValue = ttk.Label(ClinetProductDetailsFrame, textvariable=DeliveryValue, font=20)
+deliveryAddressLableValue.grid(row=1, column=1)
+
+loadIDLabel = ttk.Label(ClinetProductDetailsFrame, text='Load ID:', font=20)
+loadIDLabel.grid(row=2, column=0)
+loadIDLabelValue = ttk.Label(ClinetProductDetailsFrame, textvariable=LoadIDvalue, font=20)
+loadIDLabelValue.grid(row=2, column=1)
+
+lorrieRegLabel = ttk.Label(ClinetProductDetailsFrame, text='Lorry Reg:', font=20)
+lorrieRegLabel.grid(row=3, column=0)
+lorrieRegLabel = ttk.Label(ClinetProductDetailsFrame, textvariable=LorryRegvalue, font=20)
+lorrieRegLabel.grid(row=3, column=1)
+
+driverIDLabel = ttk.Label(ClinetProductDetailsFrame, text='Driver ID:', font=20)
+driverIDLabel.grid(row=4, column=0)
+driverIDLabel = ttk.Label(ClinetProductDetailsFrame, textvariable=driverIDvalue, font=20)
+driverIDLabel.grid(row=4, column=1)
 # ==========================================================================================================
 # laodermenuframe
 # frames
@@ -1963,14 +2050,14 @@ labelframe2 = Frame(managermenuframe, bg='#0E2B4D')
 labelframe2.grid(row=0, column=0, columnspan=3, sticky=NW)
 
 photomangermenuscreen = PhotoImage(file='white-footer-logo.png')
-photolabelmanager = Label(labelframe2, image=photomangermenuscreen, bg='#0E2B4D')
+photolabelmanager = Label(labelframe2, image=photomangermenuscreen)
 photolabelmanager.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_label = Label(labelframe2, text='Manager              ', font=40, fg='white', bg='#0E2B4D')
+username_label = Label(labelframe2, text='Manager              ', font=40)
 username_label.grid(row=0, column=2, padx=370)
 
-adminMemberClockLabel = Label(labelframe2, bg='#0E2B4D', fg='white', font='bold')
-adminMemberClockLabel.grid(row=0, column=4, padx=10)
+adminMemberClockLabel = Label(labelframe2, font='bold')
+adminMemberClockLabel.grid(row=0, column=4, padx=10,)
 
 LOGoutButton = Button(labelframe2, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
 LOGoutButton.grid(row=0, column=5, ipady=30, ipadx=10)
@@ -2007,16 +2094,16 @@ labelframe3 = Frame(drivermenuframe, bg='#0E2B4D')
 labelframe3.grid(row=0, column=0, columnspan=3, sticky=NW)
 
 photodrivermenuscreen = PhotoImage(file='white-footer-logo.png')
-photolabeldriver = Label(labelframe3, image=photodrivermenuscreen, bg='#0E2B4D')
+photolabeldriver = Label(labelframe3, image=photodrivermenuscreen)
 photolabeldriver.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_labeldriver = Label(labelframe3, text='Driver              ', font=40, fg='white', bg='#0E2B4D')
+username_labeldriver = Label(labelframe3, text='Driver              ', font=40)
 username_labeldriver.grid(row=0, column=2, padx=370)
 
-driverMemberClockLabel = Label(labelframe3, bg='#0E2B4D', fg='white', font='bold')
+driverMemberClockLabel = Label(labelframe3, font='bold')
 driverMemberClockLabel.grid(row=0, column=4, padx=10)
 
-LOGoutButtondriver = Button(labelframe3, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtondriver = Button(labelframe3, command=LogOut, text='Log Out', font=12)
 LOGoutButtondriver.grid(row=0, column=5, ipady=30, ipadx=10)
 
 # side menu manager
@@ -2051,16 +2138,16 @@ labelframe4 = Frame(clientmenuframe, bg='#0E2B4D')
 labelframe4.grid(row=0, column=0, columnspan=3, sticky=NW)
 
 photoclientmenuscreen = PhotoImage(file='white-footer-logo.png')
-photolabelclient = Label(labelframe4, image=photoclientmenuscreen, bg='#0E2B4D')
+photolabelclient = Label(labelframe4, image=photoclientmenuscreen)
 photolabelclient.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_labelclient = Label(labelframe4, text='Client              ', font=40, fg='white', bg='#0E2B4D')
+username_labelclient = Label(labelframe4, text='Client              ', font=40)
 username_labelclient.grid(row=0, column=2, padx=370)
 
-clientMemberClockLabel = Label(labelframe4, bg='#0E2B4D', fg='white', font='bold')
+clientMemberClockLabel = Label(labelframe4,  font='bold')
 clientMemberClockLabel.grid(row=0, column=4, padx=10)
 
-LOGoutButtonclient = Button(labelframe4, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtonclient = Button(labelframe4, command=LogOut, text='Log Out', font=12)
 LOGoutButtonclient.grid(row=0, column=5, ipady=30, ipadx=10)
 
 # side menu manager
@@ -2095,16 +2182,16 @@ labelframe5 = Frame(loadermenuframe, bg='#0E2B4D')
 labelframe5.grid(row=0, column=0, columnspan=3, sticky=NW)
 
 photoloadermenuscreen = PhotoImage(file='white-footer-logo.png')
-photolabelloader = Label(labelframe5, image=photoclientmenuscreen, bg='#0E2B4D')
+photolabelloader = Label(labelframe5, image=photoclientmenuscreen)
 photolabelloader.grid(row=0, column=0, sticky=NW, pady=5)
 
-username_labelloader = Label(labelframe5, text='loader              ', font=40, fg='white', bg='#0E2B4D')
+username_labelloader = Label(labelframe5, text='loader              ', font=40)
 username_labelloader.grid(row=0, column=2, padx=370)
 
-loaderMemberClockLabel = Label(labelframe5, bg='#0E2B4D', fg='white', font='bold')
+loaderMemberClockLabel = Label(labelframe5, font='bold')
 loaderMemberClockLabel.grid(row=0, column=4, padx=10)
 
-LOGoutButtonloader = Button(labelframe5, command=LogOut, text='Log Out', bg='#0E2B4D', fg='white', font=12)
+LOGoutButtonloader = Button(labelframe5, command=LogOut, text='Log Out', font=12)
 LOGoutButtonloader.grid(row=0, column=5, ipady=30, ipadx=10)
 
 # side menu laoder
