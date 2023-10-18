@@ -1,7 +1,7 @@
 import requests
 
 # API key
-api_key = 'AIzaSyAgQIoMkAZx-C2N8dj04CjtKzT8guuqSos'
+api_key = 'ENTER KEY'
 
 
 def estimatedTime(address1, address2):
